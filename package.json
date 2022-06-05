@@ -1,0 +1,22 @@
+{
+  "name": "gdqreminder-backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "server": "node main"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ViMaSter/gdqreminder-backend.git"
+  },
+  "author": "Vincent Mahnke (vincent@mahn.ke)",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/ViMaSter/gdqreminder-backend/issues"
+  },
+  "homepage": "https://github.com/ViMaSter/gdqreminder-backend#readme",
+  "dependencies": {
+    "firebase-admin": "^10.2.0"
+  }
+}
