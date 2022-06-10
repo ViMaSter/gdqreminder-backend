@@ -17,6 +17,6 @@
   },
   "homepage": "https://github.com/ViMaSter/gdqreminder-backend#readme",
   "dependencies": {
-    "firebase-admin": "^10.2.0"
+    "firebase-admin": "^10.3.0"
   }
 }
