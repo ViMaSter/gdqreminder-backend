@@ -105,3 +105,4 @@ dist
 
 # local environment settings
 .env
+firebase.json

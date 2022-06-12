@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "main.js",
+  "type": "module",
   "scripts": {
     "server": "node main"
   },
@@ -17,6 +18,7 @@
   },
   "homepage": "https://github.com/ViMaSter/gdqreminder-backend#readme",
   "dependencies": {
-    "firebase-admin": "^10.3.0"
+    "firebase-admin": "^10.3.0",
+    "got": "^12.1.0"
   }
 }

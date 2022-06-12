@@ -1,33 +1,13 @@
-const { initializeApp } = require('firebase-admin/app');
-const { getMessaging } = require("firebase-admin/messaging");
+import { initializeApp } from 'firebase-admin/app';
+import Firebase from './messaging/firebase.js';
+import { DataContainer } from './store/datacontainer.js';
 
 initializeApp();
 
-// The topic name can be optionally prefixed with "/topics/".
-const topic = 'run.start.3302';
-
-const message = {
-    notification: {
-        title: "Diese Notification sollte blau sein.",
-        body: "GDQ Blau, to be exact. 🤓"
-    },
-    android: {
-        notification: {
-            color: "#00aeef"
-        }
-    },
-    data: {
-        event: "run.start.3302"
-    },
-    topic: topic
+const eventLoop = async () => {
+  const data = new DataContainer();
+  await data.updateRelevantData();
+  new Firebase().sentTestMessage();
 };
 
-// Send a message to devices subscribed to the provided topic.
-getMessaging().send(message)
-  .then((response) => {
-    // Response is a message ID string.
-    console.log('Successfully sent message:', response);
-  })
-  .catch((error) => {
-    console.log('Error sending message:', error);
-  });
+eventLoop();
