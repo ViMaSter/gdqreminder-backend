@@ -5,7 +5,8 @@
   "main": "main.js",
   "type": "module",
   "scripts": {
-    "server": "node main"
+    "server": "node main",
+    "test": "jest"
   },
   "repository": {
     "type": "git",
@@ -19,6 +20,10 @@
   "homepage": "https://github.com/ViMaSter/gdqreminder-backend#readme",
   "dependencies": {
     "firebase-admin": "^10.3.0",
-    "got": "^12.1.0"
+    "got": "^12.1.0",
+    "jest": "^28.1.1"
+  },
+  "devDependencies": {
+    "babel-jest": "^28.1.1"
   }
 }
