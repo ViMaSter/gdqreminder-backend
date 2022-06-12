@@ -5,14 +5,15 @@ export default class Firebase
     sentTestMessage() {
         const vincent = 'run.start.3961'; // agdq2020 -> A Hat In Time
         const daniel = 'run.start.5276'; // ???
+        const kenzaki = 'run.start.997' // sgdq2011 -> darkwing duck
         const both = 'run.start.5273'; // sgdq2022 -> preshow
         // The topic name can be optionally prefixed with "/topics/".
-        const topic = vincent;
+        const topic = kenzaki;
         
         const message = {
             notification: {
-                title: "Diese Notification sollte blau sein.",
-                body: "GDQ Blau, to be exact. 🤓"
+                title: "Got your nose!",
+                body: "👀"
             },
             android: {
                 notification: {
