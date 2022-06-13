@@ -8,7 +8,7 @@ export default class Firebase
         const kenzaki = 'run.start.997' // sgdq2011 -> darkwing duck
         const both = 'run.start.5273'; // sgdq2022 -> preshow
         // The topic name can be optionally prefixed with "/topics/".
-        const topic = kenzaki;
+        const topic = vincent;
         
         const message = {
             notification: {
