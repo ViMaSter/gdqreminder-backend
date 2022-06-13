@@ -1,9 +1,11 @@
 {
     "cSpell.words": [
+        "agdq",
         "datetime",
         "endtime",
         "gdqreminder",
-        "Mahnke"
+        "Mahnke",
+        "sgdq"
     ],
     "jest.jestCommandLine": "NODE_OPTIONS=--experimental-vm-modules npx jest",
 }

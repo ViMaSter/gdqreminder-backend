@@ -1,5 +1,3 @@
-import got from 'got';
-
 export class DataContainer
 {
   #data = {
@@ -8,9 +6,15 @@ export class DataContainer
     "events": {},
     "runs": {},
   };
+
+  constructor(gotClient)
+  {
+    this.gotClient = gotClient;
+  }
+
   async getAllEvents() 
   {
-    let events = (await got.get("https://gamesdonequick.com/tracker/api/v1/search/?type=event").json()).filter(e=>e.fields.short.toLowerCase().includes("gdq"));
+    let events = (await gotClient.get("https://gamesdonequick.com/tracker/api/v1/search/?type=event").json()).filter(e=>e.fields.short.toLowerCase().includes("gdq"));
     events = events.map(event => {
       event.fields.startTime = event.fields.datetime;
       delete event.fields.datetime;
@@ -28,7 +32,7 @@ export class DataContainer
   async getEvent(eventShorthand)
   {
     eventShorthand = eventShorthand.toLowerCase();
-    const runs = await got.get(`https://gamesdonequick.com/tracker/api/v1/search/?type=run&eventshort=${eventShorthand}`).json();
+    const runs = await gotClient.get(`https://gamesdonequick.com/tracker/api/v1/search/?type=run&eventshort=${eventShorthand}`).json();
     const runsById = Object.fromEntries(runs.map(entry => [entry.pk, entry.fields]));
     this.#data.runs = {...this.#data.runs, ...runsById};
 

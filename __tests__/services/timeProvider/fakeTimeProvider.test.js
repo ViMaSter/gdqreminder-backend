@@ -1,5 +1,5 @@
 import { RealTimeProvider } from "../../../services/timeProvider/realTimeProvider";
-import { FakeTimeProvider } from "../../../services/timeProvider/fakeTimeProvider";
+import { FakeTimeProvider } from "../../stubs/fakeTimeProvider";
 
 describe("FakeTimeProvider", () => {
     describe("compared to RealTimeProvider", () => {
