@@ -25,6 +25,10 @@ export class FakeHTTPClient
     {
         const parsedURL = new URL(url);
         const fileName = parsedURL.search.replaceAll(/\W/g, "_").replaceAll(/^_?/g, "").replaceAll(/_?$/g, "");
+        if (fileName.includes("agdq2021"))
+        {
+            debugger;
+        }
         const filePath = path.resolve(path.dirname(''), `__tests__/fixtures/${parsedURL.hostname}${parsedURL.pathname.replaceAll(/\/$/g, "")}/${fileName}.json`);
         return new Request(fs.readFileSync(filePath));
     }
