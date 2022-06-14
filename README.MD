@@ -1,4 +1,6 @@
-# Setup
+# Backend for [GDQReminder App](https://github.com/ViMaSter/gdqreminder-mobile/) [![codecov](https://codecov.io/gh/ViMaSter/gdqreminder-backend/branch/main/graph/badge.svg?token=0CRSIRXAS1)](https://codecov.io/gh/ViMaSter/gdqreminder-backend)
+
+## Setup
 1. Run `npm i`
 2. Visit `Settings` -> [`Service Accounts`](https://console.firebase.google.com/project/_/settings/serviceaccounts/adminsdk) of your firebase project
 3. `Generate New Private` key and store this place anywhere on your machine
