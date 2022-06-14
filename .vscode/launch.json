@@ -3,7 +3,23 @@
     "configurations": [
         {
             "type": "node",
-            "name": "vscode-jest-tests.v2",
+            "name": "Jest: Current File",
+            "request": "launch",
+            "args": [
+                "--experimental-vm-modules",
+                "${workspaceFolder}/node_modules/.bin/jest",
+                "--runInBand",
+                "--watchAll=false",
+                "--runTestsByPath",
+                "${relativeFile}"
+            ],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen"
+        },
+        {
+            "type": "node",
+            "name": "Jest: All",
             "request": "launch",
             "args": [
                 "--experimental-vm-modules",
@@ -24,6 +40,25 @@
             ],
             "program": "${workspaceFolder}/main.js",
             "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "node",
+            "name": "vscode-jest-tests.v2",
+            "request": "launch",
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen",
+            "disableOptimisticBPs": true,
+            "cwd": "${workspaceFolder}",
+            "args": [
+                "--experimental-vm-modules",
+                "${workspaceFolder}/node_modules/.bin/jest",
+                "--runInBand",
+                "--watchAll=false",
+                "--testNamePattern",
+                "${jest.testNamePattern}",
+                "--runTestsByPath",
+                "${jest.testFile}"
+            ]
         }
     ]
 }

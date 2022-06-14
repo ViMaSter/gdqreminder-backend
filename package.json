@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "server": "node main",
-    "test": "jest"
+    "test": "node --experimental-vm-modules ./node_modules/.bin/jest"
   },
   "repository": {
     "type": "git",
