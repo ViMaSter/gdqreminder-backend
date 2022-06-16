@@ -1,3 +1,5 @@
+import moment from 'moment';
+
 export class DataContainer
 {
   #data = {
@@ -7,16 +9,20 @@ export class DataContainer
     "runsWithPK": {},
   };
 
+  #gotClient = null;
+  #timeProvider = null;
+  #emitEvent = null;
+
   constructor(gotClient, timeProvider, emitEvent)
   {
-    this.gotClient = gotClient;
-    this.timeProvider = timeProvider;
-    this.emitEvent = emitEvent;
+    this.#gotClient = gotClient;
+    this.#timeProvider = timeProvider;
+    this.#emitEvent = emitEvent;
   }
 
   async getAllEvents() 
   {
-    let events = (await this.gotClient.get("https://gamesdonequick.com/tracker/api/v1/search/?type=event").json()).filter(e=>e.fields.short.toLowerCase().includes("gdq"));
+    let events = (await this.#gotClient.get("https://gamesdonequick.com/tracker/api/v1/search/?type=event").json()).filter(e=>e.fields.short.toLowerCase().includes("gdq"));
     events = events.map(event => {
       event.fields.short = event.fields.short.toLowerCase();
       event.fields.startTime = new Date(event.fields.datetime);
@@ -41,7 +47,7 @@ export class DataContainer
         return this.#data.events[eventPK];
     }
 
-    const runs = await this.gotClient.get(`https://gamesdonequick.com/tracker/api/v1/search/?type=run&eventshort=${eventShort}`).json();
+    const runs = await this.#gotClient.get(`https://gamesdonequick.com/tracker/api/v1/search/?type=run&eventshort=${eventShort}`).json();
     const runsWithPKById = Object.fromEntries(runs.map(entry => {
       entry.fields.pk = entry.pk;
 
@@ -83,7 +89,7 @@ export class DataContainer
       await this.getAllEvents();
     }
 
-    let eventsStartedBeforeNow = this.#data.eventOrder.filter(event=>new Date(event.startTime) <= this.timeProvider.getCurrent());
+    let eventsStartedBeforeNow = this.#data.eventOrder.filter(event=>new Date(event.startTime) <= this.#timeProvider.getCurrent());
     const currentEvent = await this.getCurrentEvent();
     if (currentEvent?.short)
     {
@@ -103,10 +109,10 @@ export class DataContainer
     {
       await this.getAllEvents();
     }
-    const eventsStartedBeforeNow = this.#data.eventOrder.filter(event=>new Date(event.startTime) <= this.timeProvider.getCurrent());
+    const eventsStartedBeforeNow = this.#data.eventOrder.filter(event=>new Date(event.startTime) <= this.#timeProvider.getCurrent());
     const currentEvent = eventsStartedBeforeNow.at(-1);
     const event = await this.getEvent(currentEvent.short);
-    if (new Date(event.endTime) > this.timeProvider.getCurrent())
+    if (new Date(event.endTime) > this.#timeProvider.getCurrent())
     {
       return event;
     }
@@ -127,7 +133,7 @@ export class DataContainer
     if (nextEvent)
     {
       // if time between start time of next event is smaller than time between start time of previous event
-      if (Math.abs(new Date(nextEvent.startTime) - this.timeProvider.getCurrent()) < Math.abs(new Date(previousEvent.endTime) - this.timeProvider.getCurrent()))
+      if (Math.abs(new Date(nextEvent.startTime) - this.#timeProvider.getCurrent()) < Math.abs(new Date(previousEvent.endTime) - this.#timeProvider.getCurrent()))
       {
         return nextEvent;
       }
@@ -142,7 +148,7 @@ export class DataContainer
     {
       await this.getAllEvents();
     }
-    const eventsStartedBeforeNow = this.#data.eventOrder.filter(event=>new Date(event.startTime) > this.timeProvider.getCurrent());
+    const eventsStartedBeforeNow = this.#data.eventOrder.filter(event=>new Date(event.startTime) > this.#timeProvider.getCurrent());
     const firstUpcomingEvent = eventsStartedBeforeNow.at(0);
     if (!firstUpcomingEvent)
     {
@@ -166,7 +172,7 @@ export class DataContainer
       return this.#data.events[currentEvent.pk].runOrder[previousRunIndex];
     }
 
-    if (currentEvent.endTime <= this.timeProvider.getCurrent())
+    if (currentEvent.endTime <= this.#timeProvider.getCurrent())
     {
       return this.#data.events[currentEvent.pk].runOrder.at(-1);
     }
@@ -184,7 +190,7 @@ export class DataContainer
 
     const currentEventPK = currentEvent.pk;
 
-    const currentRun = this.#data.events[currentEventPK].runOrder.find(run => run.startTime <= this.timeProvider.getCurrent() && this.timeProvider.getCurrent() < run.endTime);
+    const currentRun = this.#data.events[currentEventPK].runOrder.find(run => run.startTime <= this.#timeProvider.getCurrent() && this.#timeProvider.getCurrent() < run.endTime);
     return currentRun;
   }
 
@@ -203,7 +209,7 @@ export class DataContainer
       return this.#data.events[currentEvent.pk].runOrder[nextRunIndex];
     }
 
-    if (currentEvent.startTime > this.timeProvider.getCurrent())
+    if (currentEvent.startTime > this.#timeProvider.getCurrent())
     {
       return this.#data.events[currentEvent.pk].runOrder.at(0);
     }
@@ -211,10 +217,40 @@ export class DataContainer
     return null;
   }
 
-  async updateRelevantData()
+  #dataAtLastCheck = {
+    timestamp: -1,
+    trackedRuns: [],
+    nextRun: null
+  };
+  async checkForEmission()
   {
-    console.log("Currently previous event: " + (await this.getNextEvent())?.short);
-    console.log("Currently active event: " + (await this.getCurrentEvent())?.short);
-    console.log("Currently next event: " + (await this.getPreviousEvent())?.short);
+    const lastCalledAt = this.#dataAtLastCheck.timestamp;
+    const now = this.#timeProvider.getCurrent();
+
+    this.#dataAtLastCheck.timestamp = now.getTime();
+
+    if (lastCalledAt == -1)
+    {
+      console.log(`initial check at ${now.toISOString()}`);
+      return;
+    }
+
+    const nextRun = await this.getNextRun();
+    if (nextRun)
+    {
+      if (nextRun.pk != this.#dataAtLastCheck.nextRun?.pk)
+      {
+        if (moment(now).add(10, 'minutes').isAfter(nextRun.startTime))
+        {
+          if (!this.#dataAtLastCheck.trackedRuns.includes(nextRun.pk))
+          {
+            this.#dataAtLastCheck.trackedRuns.push(nextRun.pk);
+            this.#emitEvent(nextRun.pk);
+          }
+          this.#dataAtLastCheck.nextRun = nextRun;
+        }
+      }
+    }
+
   }
 }
