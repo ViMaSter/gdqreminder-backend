@@ -19,7 +19,7 @@ export class DataContainer
     let events = (await this.gotClient.get("https://gamesdonequick.com/tracker/api/v1/search/?type=event").json()).filter(e=>e.fields.short.toLowerCase().includes("gdq"));
     events = events.map(event => {
       event.fields.short = event.fields.short.toLowerCase();
-      event.fields.startTime = event.fields.datetime;
+      event.fields.startTime = new Date(event.fields.datetime);
       event.fields.pk = event.pk;
       delete event.fields.datetime;
       return event;
@@ -30,7 +30,7 @@ export class DataContainer
     const eventShortToPK = Object.fromEntries(events.map(entry => [entry.fields.short, entry.pk]));
     this.#data.eventShortToPK = {...this.#data.eventShortToPK, ...eventShortToPK};
 
-    const eventsInOrder = events.sort((a,b)=>new Date(b.fields.starttime) - new Date(a.fields.starttime)).map(event=>event.fields);
+    const eventsInOrder = events.sort((a,b)=>new Date(a.fields.startTime) - new Date(b.fields.startTime)).map(event=>event.fields);
     this.#data.eventOrder = eventsInOrder;
   }
   async getEvent(eventShort)
@@ -45,17 +45,17 @@ export class DataContainer
     const runsWithPKById = Object.fromEntries(runs.map(entry => {
       entry.fields.pk = entry.pk;
 
-      entry.fields.startTime = entry.starttime;
-      delete entry.fields.startTime;
+      entry.fields.startTime = new Date(entry.fields.starttime);
+      delete entry.fields.starttime;
 
-      entry.fields.endTime = entry.endtime;
-      delete entry.fields.endTime;
+      entry.fields.endTime = new Date(entry.fields.endtime);
+      delete entry.fields.endtime;
 
       return [entry.pk, entry.fields];
     }));
     this.#data.runsWithPK = {...this.#data.runsWithPK, ...runsWithPKById};
 
-    const runsInOrder = Object.values(runsWithPKById).sort((a,b)=>new Date(a.starttime) - new Date(b.starttime));
+    const runsInOrder = Object.values(runsWithPKById).sort((a,b)=>new Date(a.startTime) - new Date(b.startTime));
     if (!this.#data.eventShortToPK.hasOwnProperty(eventShort))
     {
       await this.getAllEvents();
@@ -70,8 +70,8 @@ export class DataContainer
 
     const lastRunOfEvent = runsInOrder.at(-1);
 
-    this.#data.events[eventPK].endTime = this.#data.runsWithPK[lastRunOfEvent.pk].endtime;
-    this.#data.eventOrder[eventIndex].endTime = this.#data.runsWithPK[lastRunOfEvent.pk].endtime;
+    this.#data.events[eventPK].endTime = new Date(this.#data.runsWithPK[lastRunOfEvent.pk].endTime);
+    this.#data.eventOrder[eventIndex].endTime = new Date(this.#data.runsWithPK[lastRunOfEvent.pk].endTime);
 
     return this.#data.events[eventPK];
   }
@@ -154,20 +154,21 @@ export class DataContainer
   async getPreviousRun()
   {
     const currentRun = await this.getCurrentRun();
+    const currentEvent = await this.getRelevantEvent();
+
     if (currentRun != null)
     {
-      const previousRunIndex = this.#data.events[currentEvent.short].runOrder.findIndex(run => run.pk == currentRun.pk) - 1;
+      const previousRunIndex = this.#data.events[currentEvent.pk].runOrder.findIndex(run => run.pk == currentRun.pk) - 1;
       if (previousRunIndex < 0)
       {
         return null;
       }
-      return this.#data.events[currentEvent.short].runOrder[previousRunIndex];
+      return this.#data.events[currentEvent.pk].runOrder[previousRunIndex];
     }
 
-    const currentEvent = await this.getCurrentEvent();
-    if (currentEvent.endTime < this.timeProvider.getCurrent())
+    if (currentEvent.endTime <= this.timeProvider.getCurrent())
     {
-      return this.#data.events[currentEvent.short].runOrder.at(-1);
+      return this.#data.events[currentEvent.pk].runOrder.at(-1);
     }
 
     return null;
@@ -183,27 +184,28 @@ export class DataContainer
 
     const currentEventPK = currentEvent.pk;
 
-    const currentRun = this.#data.events[currentEventPK].runOrder.find(run => run.startTime >= this.timeProvider.getCurrent() && run.endTime <= this.timeProvider.getCurrent());
+    const currentRun = this.#data.events[currentEventPK].runOrder.find(run => run.startTime <= this.timeProvider.getCurrent() && this.timeProvider.getCurrent() < run.endTime);
     return currentRun;
   }
 
   async getNextRun()
   {
     const currentRun = await this.getCurrentRun();
+    const currentEvent = await this.getRelevantEvent();
+
     if (currentRun != null)
     {
-      const nextRunIndex = this.#data.events[currentEvent.short].runOrder.findIndex(run => run.pk == currentRun.pk) + 1;
-      if (nextRunIndex >= this.#data.events[currentEvent.short].runOrder.length)
+      const nextRunIndex = this.#data.events[currentEvent.pk].runOrder.findIndex(run => run.pk == currentRun.pk) + 1;
+      if (nextRunIndex >= this.#data.events[currentEvent.pk].runOrder.length)
       {
         return null;
       }
-      return this.#data.events[currentEvent.short].runOrder[nextRunIndex];
+      return this.#data.events[currentEvent.pk].runOrder[nextRunIndex];
     }
 
-    const currentEvent = await this.getCurrentEvent();
     if (currentEvent.startTime > this.timeProvider.getCurrent())
     {
-      return this.#data.events[currentEvent.short].runOrder.at(0);
+      return this.#data.events[currentEvent.pk].runOrder.at(0);
     }
 
     return null;
