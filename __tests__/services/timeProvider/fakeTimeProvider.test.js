@@ -51,6 +51,29 @@ describe("FakeTimeProvider", () => {
                 expect(fakeTimeProvider.getCurrent().getTime()).toEqual(firstOfJanuary2000.getTime() + currentOffset);
             });
         });
+
+        test('can set time directly', async () => {
+            const fakeTimeProvider = new FakeTimeProvider(firstOfJanuary2000.getTime());
+            
+            expect(fakeTimeProvider.getCurrent()).toEqual(firstOfJanuary2000);
+            const timeIntervals = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000];
+            timeIntervals.forEach(timeInterval => {
+                fakeTimeProvider.setTime(firstOfJanuary2000.getTime() + timeInterval);
+                expect(fakeTimeProvider.getCurrent().getTime()).toEqual(firstOfJanuary2000.getTime() + timeInterval);
+            });
+        });
+
+        test('setting time resets previously passed time', async () => {
+            const fakeTimeProvider = new FakeTimeProvider(firstOfJanuary2000.getTime());
+            
+            expect(fakeTimeProvider.getCurrent()).toEqual(firstOfJanuary2000);
+            const timeIntervals = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000];
+            timeIntervals.forEach(timeInterval => {
+                fakeTimeProvider.setTime(firstOfJanuary2000.getTime());
+                fakeTimeProvider.passTime(timeInterval);
+                expect(fakeTimeProvider.getCurrent().getTime()).toEqual(firstOfJanuary2000.getTime() + timeInterval);
+            });
+        });
     })
 
 })
