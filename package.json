@@ -12,9 +12,9 @@
     "type": "git",
     "url": "git+https://github.com/ViMaSter/gdqreminder-backend.git"
   },
-  "engines" : { 
-    "npm" : ">=8.5.0",
-    "node" : ">=16.14.2"
+  "engines": {
+    "npm": ">=8.5.0",
+    "node": ">=16.14.2"
   },
   "author": "Vincent Mahnke (vincent@mahn.ke)",
   "license": "GPL-3.0",
@@ -25,7 +25,8 @@
   "dependencies": {
     "firebase-admin": "^10.3.0",
     "got": "^12.1.0",
-    "jest": "^28.1.1"
+    "jest": "^28.1.1",
+    "moment": "^2.29.3"
   },
   "devDependencies": {
     "babel-jest": "^28.1.1"
