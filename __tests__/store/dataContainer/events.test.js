@@ -39,7 +39,7 @@ describe("dataContainer", () => {
         };
 
         Object.entries(pointsInTimeAndExpectedResponse).forEach(([date, expectedResults]) => {
-            describe("during "+date, () => {
+            describe("at "+date, () => {
                 const dataContainer = new DataContainer(new FakeHTTPClient(), new FakeTimeProvider(new Date(date)));
 
                 Object.entries(expectedResults).forEach(([relativeTime, result]) => {
