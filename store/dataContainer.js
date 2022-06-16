@@ -4,13 +4,14 @@ export class DataContainer
     "eventShortToPK": {},
     "eventOrder": [],
     "events": {},
-    "runs": {},
+    "runsWithPK": {},
   };
 
-  constructor(gotClient, timeProvider)
+  constructor(gotClient, timeProvider, emitEvent)
   {
     this.gotClient = gotClient;
     this.timeProvider = timeProvider;
+    this.emitEvent = emitEvent;
   }
 
   async getAllEvents() 
@@ -19,6 +20,7 @@ export class DataContainer
     events = events.map(event => {
       event.fields.short = event.fields.short.toLowerCase();
       event.fields.startTime = event.fields.datetime;
+      event.fields.pk = event.pk;
       delete event.fields.datetime;
       return event;
     })
@@ -40,10 +42,20 @@ export class DataContainer
     }
 
     const runs = await this.gotClient.get(`https://gamesdonequick.com/tracker/api/v1/search/?type=run&eventshort=${eventShort}`).json();
-    const runsById = Object.fromEntries(runs.map(entry => [entry.pk, entry.fields]));
-    this.#data.runs = {...this.#data.runs, ...runsById};
+    const runsWithPKById = Object.fromEntries(runs.map(entry => {
+      entry.fields.pk = entry.pk;
 
-    const runsInOrder = runs.sort((a,b)=>new Date(a.fields.starttime) - new Date(b.fields.starttime)).map(event=>event.pk);
+      entry.fields.startTime = entry.starttime;
+      delete entry.fields.startTime;
+
+      entry.fields.endTime = entry.endtime;
+      delete entry.fields.endTime;
+
+      return [entry.pk, entry.fields];
+    }));
+    this.#data.runsWithPK = {...this.#data.runsWithPK, ...runsWithPKById};
+
+    const runsInOrder = Object.values(runsWithPKById).sort((a,b)=>new Date(a.starttime) - new Date(b.starttime));
     if (!this.#data.eventShortToPK.hasOwnProperty(eventShort))
     {
       await this.getAllEvents();
@@ -56,10 +68,10 @@ export class DataContainer
     this.#data.events[eventPK].runOrder = runsInOrder;
     this.#data.eventOrder[eventIndex].runOrder = runsInOrder;
 
-    const lastRunOfEventShort = runsInOrder.at(-1);
+    const lastRunOfEvent = runsInOrder.at(-1);
 
-    this.#data.events[eventPK].endTime = this.#data.runs[lastRunOfEventShort].endtime;
-    this.#data.eventOrder[eventIndex].endTime = this.#data.runs[lastRunOfEventShort].endtime;
+    this.#data.events[eventPK].endTime = this.#data.runsWithPK[lastRunOfEvent.pk].endtime;
+    this.#data.eventOrder[eventIndex].endTime = this.#data.runsWithPK[lastRunOfEvent.pk].endtime;
 
     return this.#data.events[eventPK];
   }
@@ -102,6 +114,28 @@ export class DataContainer
     return null;
   }
 
+  async getRelevantEvent()
+  {
+    const currentEvent = await this.getCurrentEvent();
+    if (currentEvent)
+    {
+      return currentEvent;
+    }
+
+    const previousEvent = await this.getPreviousEvent();
+    const nextEvent = await this.getNextEvent();
+    if (nextEvent)
+    {
+      // if time between start time of next event is smaller than time between start time of previous event
+      if (Math.abs(new Date(nextEvent.startTime) - this.timeProvider.getCurrent()) < Math.abs(new Date(previousEvent.endTime) - this.timeProvider.getCurrent()))
+      {
+        return nextEvent;
+      }
+    }
+
+    return previousEvent;
+  }
+
   async getNextEvent()
   {
     if (this.#data.eventOrder.length <= 0)
@@ -115,6 +149,64 @@ export class DataContainer
       return null;
     }
     return this.getEvent(firstUpcomingEvent.short);
+  }
+
+  async getPreviousRun()
+  {
+    const currentRun = await this.getCurrentRun();
+    if (currentRun != null)
+    {
+      const previousRunIndex = this.#data.events[currentEvent.short].runOrder.findIndex(run => run.pk == currentRun.pk) - 1;
+      if (previousRunIndex < 0)
+      {
+        return null;
+      }
+      return this.#data.events[currentEvent.short].runOrder[previousRunIndex];
+    }
+
+    const currentEvent = await this.getCurrentEvent();
+    if (currentEvent.endTime < this.timeProvider.getCurrent())
+    {
+      return this.#data.events[currentEvent.short].runOrder.at(-1);
+    }
+
+    return null;
+  }
+
+  async getCurrentRun()
+  {
+    const currentEvent = await this.getCurrentEvent();
+    if (currentEvent == null)
+    {
+      return null;
+    }
+
+    const currentEventPK = currentEvent.pk;
+
+    const currentRun = this.#data.events[currentEventPK].runOrder.find(run => run.startTime >= this.timeProvider.getCurrent() && run.endTime <= this.timeProvider.getCurrent());
+    return currentRun;
+  }
+
+  async getNextRun()
+  {
+    const currentRun = await this.getCurrentRun();
+    if (currentRun != null)
+    {
+      const nextRunIndex = this.#data.events[currentEvent.short].runOrder.findIndex(run => run.pk == currentRun.pk) + 1;
+      if (nextRunIndex >= this.#data.events[currentEvent.short].runOrder.length)
+      {
+        return null;
+      }
+      return this.#data.events[currentEvent.short].runOrder[nextRunIndex];
+    }
+
+    const currentEvent = await this.getCurrentEvent();
+    if (currentEvent.startTime > this.timeProvider.getCurrent())
+    {
+      return this.#data.events[currentEvent.short].runOrder.at(0);
+    }
+
+    return null;
   }
 
   async updateRelevantData()
