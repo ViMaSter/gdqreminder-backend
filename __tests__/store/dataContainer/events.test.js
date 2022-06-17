@@ -40,7 +40,7 @@ describe("dataContainer", () => {
 
         Object.entries(pointsInTimeAndExpectedResponse).forEach(([date, expectedResults]) => {
             describe("at "+date, () => {
-                const dataContainer = new DataContainer(new FakeHTTPClient(), new FakeTimeProvider(new Date(date)));
+                const dataContainer = new DataContainer(FakeHTTPClient, new FakeTimeProvider(new Date(date)));
 
                 Object.entries(expectedResults).forEach(([relativeTime, result]) => {
                     // capitalize first letter of relativeTime
@@ -64,7 +64,7 @@ describe("dataContainer", () => {
 
     describe("relevantEvent", () => {
         const timeProvider = new FakeTimeProvider(new Date());
-        const dataContainer = new DataContainer(new FakeHTTPClient(), timeProvider);
+        const dataContainer = new DataContainer(FakeHTTPClient, timeProvider);
         test("relevantEvent returns current event if we are mid event", async () => {
             const duringAGDQ2022 = new Date("2022-01-11T17:07:00Z");
             const duringSGDQ2022 = new Date("2022-06-30T17:07:00Z");

@@ -2,8 +2,7 @@ import { FakeHTTPClient } from '../../stubs/fakeHTTPClient';
 
 describe("FakeHTTPClient", () => {
     test(`[EVENTS] can read files`, async () => {
-        const client = new FakeHTTPClient();
-        const request = client.get("https://gamesdonequick.com/tracker/api/v1/search/?type=event");
+        const request = FakeHTTPClient.get("https://gamesdonequick.com/tracker/api/v1/search/?type=event");
         const content = await request.json();
         expect(content.length).toBe(36);
     });
@@ -15,8 +14,7 @@ describe("FakeHTTPClient", () => {
     };
     Object.entries(events).forEach(([eventShort, runCount]) => {
         test(`[${eventShort}] can read files`, async () => {
-            const client = new FakeHTTPClient();
-            const request = client.get("https://gamesdonequick.com/tracker/api/v1/search/?type=run&eventshort=" + eventShort);
+            const request = FakeHTTPClient.get("https://gamesdonequick.com/tracker/api/v1/search/?type=run&eventshort=" + eventShort);
             const content = await request.json();
             expect(content.length).toBe(runCount);
         });

@@ -14,7 +14,7 @@ class Request
     }
 }
 
-export class FakeHTTPClient
+class HTTPClient
 {
     constructor()
     {
@@ -25,11 +25,16 @@ export class FakeHTTPClient
     {
         const parsedURL = new URL(url);
         const fileName = parsedURL.search.replaceAll(/\W/g, "_").replaceAll(/^_?/g, "").replaceAll(/_?$/g, "");
-        if (fileName.includes("agdq2021"))
-        {
-            debugger;
-        }
-        const filePath = path.resolve(path.dirname(''), `__tests__/fixtures/${parsedURL.hostname}${parsedURL.pathname.replaceAll(/\/$/g, "")}/${fileName}.json`);
+        const filePath = path.resolve(path.dirname(''), `__tests__/fixtures/GET/${parsedURL.hostname}${parsedURL.pathname.replaceAll(/\/$/g, "")}/${fileName}.json`);
+        return new Request(fs.readFileSync(filePath));
+    }
+    
+    post(url)
+    {
+        const parsedURL = new URL(url);
+        const filePath = path.resolve(path.dirname(''), `__tests__/fixtures/POST/${parsedURL.hostname}${parsedURL.pathname.replaceAll(/\/$/g, "")}.json`);
         return new Request(fs.readFileSync(filePath));
     }
 }
+
+export const FakeHTTPClient = new HTTPClient();

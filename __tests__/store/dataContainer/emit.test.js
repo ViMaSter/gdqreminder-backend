@@ -16,7 +16,7 @@ describe("dataContainer", () => {
             for await(const time of times) {
                 const timeProvider = new FakeTimeProvider(new Date(time));
                 const emissionMethod = jest.fn();
-                const dataContainer = new DataContainer(new FakeHTTPClient(), timeProvider, emissionMethod);
+                const dataContainer = new DataContainer(FakeHTTPClient, timeProvider, emissionMethod);
     
                 await dataContainer.checkForEmission();
                 expect(emissionMethod.mock.calls.length).toBe(0);
@@ -39,21 +39,21 @@ describe("dataContainer", () => {
                 // if it doesn't exist, use display_name
 
             },
-            "if the previous run has an end time": (emissionMethod) => {
+            "if the previous run has a changed end time": (emissionMethod) => {
 
             },
-            "if a run start is already in the past": (emissionMethod) => {
+            "if the run's start time has moved into the past": (emissionMethod) => {
                 // ^ this occurs, if the tracker previously had a start time in >10 minutes and then gets updated because the run has started
                 // maybe send a different message?
             }
         };
 
-        describe("can inform", () => {
+        describe("will emit", () => {
             Object.entries(triggerInformationEvent).forEach(([description, logic]) => {
-                it(`informs ${description}`, async () => {
+                it(`emits ${description}`, async () => {
                     const timeProvider = new FakeTimeProvider();
                     const emissionMethod = jest.fn();
-                    const dataContainer = new DataContainer(new FakeHTTPClient(), timeProvider, emissionMethod);
+                    const dataContainer = new DataContainer(FakeHTTPClient, timeProvider, emissionMethod);
 
                     await logic(dataContainer, timeProvider);
                     expect(emissionMethod.mock.calls.length).toBe(1);
@@ -62,13 +62,13 @@ describe("dataContainer", () => {
             });
         })
 
-        describe("only informs once", () => {
+        describe("only emits once per run", () => {
             Object.entries(triggerInformationEvent).forEach(([description1, logic1]) => {
                 Object.entries(triggerInformationEvent).forEach(([description2, logic2]) => {
-                    it(`informs '${description1}', ignores '${description2}' after`, async () => {
+                    it(`emits '${description1}', ignores '${description2}' after`, async () => {
                         const timeProvider = new FakeTimeProvider();
                         const emissionMethod = jest.fn();
-                        const dataContainer = new DataContainer(new FakeHTTPClient(), timeProvider, emissionMethod);
+                        const dataContainer = new DataContainer(FakeHTTPClient, timeProvider, emissionMethod);
     
                         await logic1(dataContainer, timeProvider);
                         expect(emissionMethod.mock.calls.length).toBe(1);
