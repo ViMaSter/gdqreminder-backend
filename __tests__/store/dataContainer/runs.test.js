@@ -66,7 +66,7 @@ describe("dataContainer", () => {
 
         Object.entries(pointsInTimeAndExpectedResponse).forEach(([date, expectedResults]) => {
             describe("at "+date, () => {
-                const dataContainer = new DataContainer(new FakeHTTPClient(), new FakeTimeProvider(new Date(date)));
+                const dataContainer = new DataContainer(FakeHTTPClient, new FakeTimeProvider(new Date(date)));
 
                 Object.entries(expectedResults).forEach(([relativeTime, dataPair]) => {
                     // capitalize first letter of relativeTime
