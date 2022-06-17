@@ -1,8 +1,8 @@
-import { FakeHTTPClient } from '../../stubs/fakeHTTPClient';
+import { FakeHTTPClient, PrefixEmptyError } from '../../stubs/fakeHTTPClient';
 
 describe("FakeHTTPClient", () => {
     test(`[EVENTS] can read files`, async () => {
-        const request = FakeHTTPClient.get("https://gamesdonequick.com/tracker/api/v1/search/?type=event");
+        const request = new FakeHTTPClient("during-preshow").get("https://gamesdonequick.com/tracker/api/v1/search/?type=event");
         const content = await request.json();
         expect(content.length).toBe(36);
     });
@@ -14,14 +14,22 @@ describe("FakeHTTPClient", () => {
     };
     Object.entries(events).forEach(([eventShort, runCount]) => {
         test(`[${eventShort}] can read files`, async () => {
-            const request = FakeHTTPClient.get("https://gamesdonequick.com/tracker/api/v1/search/?type=run&eventshort=" + eventShort);
+            const request = new FakeHTTPClient("during-preshow").get("https://gamesdonequick.com/tracker/api/v1/search/?type=run&eventshort=" + eventShort);
             const content = await request.json();
             expect(content.length).toBe(runCount);
         });
     });
 
-    test(`can set folder prefix`, () => {
-        throw new Error("not implemented")
+    test(`can set folder prefix`, async () => {
+        const client = new FakeHTTPClient("test/1");
+        expect(await client.get("https://google.com").json()).toBe(1);
+        client.setPrefix("test/2");
+        expect(await client.get("https://google.com").json()).toBe(2);
+    })
+
+    test(`throws if no error prefix is set`, () => {
+        expect(() => new FakeHTTPClient("")).toThrow(new PrefixEmptyError());
+        expect(() => new FakeHTTPClient("test").setPrefix("")).toThrow(new PrefixEmptyError());
     })
     
 })

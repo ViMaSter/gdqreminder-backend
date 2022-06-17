@@ -296,4 +296,28 @@ export class DataContainer
     this.#dataAtLastCheck.trackedRuns.push(nextRun.pk);
     this.#emitEvent(nextRun.pk);
   }
+  async previousRunHasUpdatedEndTime()
+  {
+    const nextRun = await this.getRunToMonitor();
+    const previousRunIndex = this.#data.events[currentEvent.pk].runOrder.findIndex(run => run.pk == currentRun.pk) - 1;
+    if (previousRunIndex < 0)	
+    {
+      return;
+    }
+
+    const previousRun = this.#data.events[nextRun.event].runOrder[previousRunIndex];
+    if (!this.#dataAtLastCheck.endTimeOfPreviousRun)
+    {
+      this.#dataAtLastCheck.endTimeOfPreviousRun = previousRun.endTime;
+      return;
+    }
+    if (this.#dataAtLastCheck.endTimeOfPreviousRun == previousRun.endTime)
+    {
+      return;
+    }
+
+    this.#dataAtLastCheck.trackedRuns.push(nextRun.pk);
+    this.#emitEvent(nextRun.pk);
+    this.#dataAtLastCheck.endTimeOfPreviousRun = previousRun.endTime;
+  }
 }
