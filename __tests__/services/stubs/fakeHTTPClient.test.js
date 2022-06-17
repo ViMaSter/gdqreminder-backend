@@ -19,5 +19,9 @@ describe("FakeHTTPClient", () => {
             expect(content.length).toBe(runCount);
         });
     });
+
+    test(`can set folder prefix`, () => {
+        throw new Error("not implemented")
+    })
     
 })
