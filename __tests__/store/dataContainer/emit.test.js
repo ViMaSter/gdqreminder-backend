@@ -18,46 +18,73 @@ describe("dataContainer", () => {
                 const emissionMethod = jest.fn();
                 const dataContainer = new DataContainer(FakeHTTPClient, timeProvider, emissionMethod);
     
-                await dataContainer.checkForEmission();
+                await dataContainer.checkFor10MinuteWarning();
                 expect(emissionMethod.mock.calls.length).toBe(0);
             };
         })
 
         const triggerInformationEvent = {
-            "if a run start is less than 10 minutes away": async (dataContainer, timeProvider) => {
+            "if a run start is less than 10 minutes away": async (dataContainer, timeProvider, emissionMethod, skipValidation = false) => {
+                const previousCallCount = emissionMethod.mock.calls.length;
                 const preShowStart = moment("2022-01-09T16:30:00Z");
 
                 timeProvider.setTime(new Date(preShowStart.clone().subtract(20, 'minutes').toISOString()).getTime());
-                await dataContainer.checkForEmission();
+                await dataContainer.checkFor10MinuteWarning();
                 timeProvider.setTime(new Date(preShowStart.clone().subtract(11, 'minutes').toISOString()));
-                await dataContainer.checkForEmission();
+                await dataContainer.checkFor10MinuteWarning();
                 timeProvider.setTime(new Date(preShowStart.clone().subtract(9, 'minutes').subtract(59, 'seconds').toISOString()));
-                await dataContainer.checkForEmission();
+                await dataContainer.checkFor10MinuteWarning();
+                if (!skipValidation)
+                {
+                    expect(emissionMethod.mock.calls.length).toBe(previousCallCount+1);
+                    expect(emissionMethod.mock.calls[previousCallCount][0]).toBe(5049);
+                }
             },
-            "if the game on twitch matches the name of the next run": (emissionMethod) => {
-                // use twitch_name first
-                // if it doesn't exist, use display_name
+            "if the game on twitch matches the name of the next run": async (dataContainer, timeProvider, emissionMethod, skipValidation = false) => {
+                const previousCallCount = emissionMethod.mock.calls.length;
 
-            },
-            "if the previous run has a changed end time": (emissionMethod) => {
+                const preShowStart = moment("2022-01-09T16:30:00Z");
+                const finaleStart = moment("2022-01-16T06:51:23Z");
 
+                timeProvider.setTime(new Date(preShowStart.clone().subtract(11, 'minutes').toISOString()).getTime());
+                await dataContainer.checkTwitch();
+                if (!skipValidation)
+                {
+                    expect(emissionMethod.mock.calls.length).toBe(previousCallCount+1);
+                    expect(emissionMethod.mock.calls[previousCallCount][0]).toBe(5049);
+                }
+                timeProvider.setTime(new Date(finaleStart.clone().subtract(11, 'minutes').toISOString()).getTime());
+                await dataContainer.checkTwitch();
+                if (!skipValidation)
+                {
+                    expect(emissionMethod.mock.calls.length).toBe(previousCallCount+1);
+                }
+                timeProvider.setTime(new Date(preShowStart.clone().subtract(11, 'minutes').toISOString()).getTime());
+                await dataContainer.checkTwitch();
+                if (!skipValidation)
+                {
+                    expect(emissionMethod.mock.calls.length).toBe(previousCallCount+1);
+                }
             },
-            "if the run's start time has moved into the past": (emissionMethod) => {
+            "if the previous run has a changed end time": async (dataContainer, timeProvider, emissionMethod) => {
+                throw new Error("not implemented");
+            },
+            "if the run's start time has moved into the past": async (dataContainer, timeProvider, emissionMethod) => {
                 // ^ this occurs, if the tracker previously had a start time in >10 minutes and then gets updated because the run has started
                 // maybe send a different message?
+                throw new Error("not implemented");
             }
         };
 
         describe("will emit", () => {
             Object.entries(triggerInformationEvent).forEach(([description, logic]) => {
                 it(`emits ${description}`, async () => {
-                    const timeProvider = new FakeTimeProvider();
+                    const timeProvider = new FakeTimeProvider(new Date());
                     const emissionMethod = jest.fn();
                     const dataContainer = new DataContainer(FakeHTTPClient, timeProvider, emissionMethod);
+                    await dataContainer.getRunToMonitor();
 
-                    await logic(dataContainer, timeProvider);
-                    expect(emissionMethod.mock.calls.length).toBe(1);
-                    expect(emissionMethod.mock.calls[0][0]).toBe(5049);
+                    await logic(dataContainer, timeProvider, emissionMethod);
                 });
             });
         })
@@ -66,15 +93,15 @@ describe("dataContainer", () => {
             Object.entries(triggerInformationEvent).forEach(([description1, logic1]) => {
                 Object.entries(triggerInformationEvent).forEach(([description2, logic2]) => {
                     it(`emits '${description1}', ignores '${description2}' after`, async () => {
-                        const timeProvider = new FakeTimeProvider();
+                        const timeProvider = new FakeTimeProvider(new Date());
                         const emissionMethod = jest.fn();
                         const dataContainer = new DataContainer(FakeHTTPClient, timeProvider, emissionMethod);
+                        await dataContainer.getRunToMonitor();
     
-                        await logic1(dataContainer, timeProvider);
-                        expect(emissionMethod.mock.calls.length).toBe(1);
-                        expect(emissionMethod.mock.calls[0][0]).toBe(5049);
-                        await logic2(dataContainer, timeProvider);
-                        expect(emissionMethod.mock.calls.length).toBe(1);
+                        await logic1(dataContainer, timeProvider, emissionMethod);
+                        const callCount = emissionMethod.mock.calls.length;
+                        await logic2(dataContainer, timeProvider, emissionMethod, true);
+                        expect(emissionMethod.mock.calls.length).toBe(callCount);
                     });
                 });
             });

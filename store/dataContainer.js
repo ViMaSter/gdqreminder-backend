@@ -1,4 +1,5 @@
 import moment from 'moment';
+import { Twitch } from '../services/twitch.js'
 
 export class DataContainer
 {
@@ -12,12 +13,14 @@ export class DataContainer
   #gotClient = null;
   #timeProvider = null;
   #emitEvent = null;
+  #twitch = null;
 
   constructor(gotClient, timeProvider, emitEvent)
   {
     this.#gotClient = gotClient;
     this.#timeProvider = timeProvider;
     this.#emitEvent = emitEvent;
+    this.#twitch = new Twitch(this.#gotClient);
   }
 
   async getAllEvents() 
@@ -219,10 +222,10 @@ export class DataContainer
 
   #dataAtLastCheck = {
     timestamp: -1,
-    trackedRuns: [],
-    nextRun: null
+    trackedRuns: []
   };
-  async checkForEmission()
+
+  async getRunToMonitor()
   {
     const lastCalledAt = this.#dataAtLastCheck.timestamp;
     const now = this.#timeProvider.getCurrent();
@@ -236,21 +239,61 @@ export class DataContainer
     }
 
     const nextRun = await this.getNextRun();
-    if (nextRun)
+    if (!nextRun)
     {
-      if (nextRun.pk != this.#dataAtLastCheck.nextRun?.pk)
+      return;
+    }
+
+    if (this.#dataAtLastCheck.trackedRuns.includes(nextRun.pk))
+    {
+      return;
+    }
+
+    return nextRun;
+  }
+
+  async checkTwitch()
+  {
+    const nextRun = await this.getRunToMonitor();
+    if (!nextRun)
+    {
+      return;
+    }
+    
+    if (nextRun.twitch_name)
+    {
+      if (await this.#twitch.isSubstringOfGameNameOrStreamTitle(nextRun.twitch_name))
       {
-        if (moment(now).add(10, 'minutes').isAfter(nextRun.startTime))
-        {
-          if (!this.#dataAtLastCheck.trackedRuns.includes(nextRun.pk))
-          {
-            this.#dataAtLastCheck.trackedRuns.push(nextRun.pk);
-            this.#emitEvent(nextRun.pk);
-          }
-          this.#dataAtLastCheck.nextRun = nextRun;
-        }
+        this.#dataAtLastCheck.trackedRuns.push(nextRun.pk);
+        this.#emitEvent(nextRun.pk);
+        return;
       }
     }
 
+    if (nextRun.display_name)
+    {
+      if (await this.#twitch.isSubstringOfGameNameOrStreamTitle(nextRun.display_name))
+      {
+        this.#dataAtLastCheck.trackedRuns.push(nextRun.pk);
+        this.#emitEvent(nextRun.pk);
+        return;
+      }
+    }
+  }
+  async checkFor10MinuteWarning()
+  {
+    const nextRun = await this.getRunToMonitor();
+    if (!nextRun)
+    {
+      return;
+    }
+    
+    if (!moment(this.#dataAtLastCheck.timestamp).add(10, 'minutes').isAfter(nextRun.startTime))
+    {
+      return;
+    }
+
+    this.#dataAtLastCheck.trackedRuns.push(nextRun.pk);
+    this.#emitEvent(nextRun.pk);
   }
 }
