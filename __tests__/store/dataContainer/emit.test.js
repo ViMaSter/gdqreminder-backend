@@ -16,7 +16,7 @@ describe("dataContainer", () => {
             for await(const time of times) {
                 const timeProvider = new FakeTimeProvider(new Date(time));
                 const emissionMethod = jest.fn();
-                const dataContainer = new DataContainer(FakeHTTPClient, timeProvider, emissionMethod);
+                const dataContainer = new DataContainer(new FakeHTTPClient("during-preshow"), timeProvider, emissionMethod);
     
                 await dataContainer.checkFor10MinuteWarning();
                 expect(emissionMethod.mock.calls.length).toBe(0);
@@ -81,7 +81,7 @@ describe("dataContainer", () => {
                 it(`emits ${description}`, async () => {
                     const timeProvider = new FakeTimeProvider(new Date());
                     const emissionMethod = jest.fn();
-                    const dataContainer = new DataContainer(FakeHTTPClient, timeProvider, emissionMethod);
+                    const dataContainer = new DataContainer(new FakeHTTPClient("during-preshow"), timeProvider, emissionMethod);
                     await dataContainer.getRunToMonitor();
 
                     await logic(dataContainer, timeProvider, emissionMethod);
@@ -95,7 +95,7 @@ describe("dataContainer", () => {
                     it(`emits '${description1}', ignores '${description2}' after`, async () => {
                         const timeProvider = new FakeTimeProvider(new Date());
                         const emissionMethod = jest.fn();
-                        const dataContainer = new DataContainer(FakeHTTPClient, timeProvider, emissionMethod);
+                        const dataContainer = new DataContainer(new FakeHTTPClient("during-preshow"), timeProvider, emissionMethod);
                         await dataContainer.getRunToMonitor();
     
                         await logic1(dataContainer, timeProvider, emissionMethod);

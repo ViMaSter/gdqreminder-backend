@@ -14,27 +14,53 @@ class Request
     }
 }
 
-class HTTPClient
+export class PrefixEmptyError extends Error {}
+
+export class FakeHTTPClient
 {
-    constructor()
+    #prefix = "";
+    constructor(prefix)
     {
-        this.requests = [];
+        this.setPrefix(prefix);
+    }
+
+    setPrefix(prefix)
+    {
+        this.#prefix = prefix;
+        if (!this.#prefix)
+        {
+            throw new PrefixEmptyError();
+        }
     }
     
     get(url)
     {
         const parsedURL = new URL(url);
         const fileName = parsedURL.search.replaceAll(/\W/g, "_").replaceAll(/^_?/g, "").replaceAll(/_?$/g, "");
-        const filePath = path.resolve(path.dirname(''), `__tests__/fixtures/GET/${parsedURL.hostname}${parsedURL.pathname.replaceAll(/\/$/g, "")}/${fileName}.json`);
+        let parts = [
+            "__tests__",
+            "fixtures",
+            this.#prefix,
+            "GET",
+            parsedURL.hostname + parsedURL.pathname.replaceAll(/\/$/g, ""),
+            fileName,
+        ].filter(entry=>!!entry);
+
+        const filePath = path.resolve(path.dirname(''), parts.join("/")+".json");
         return new Request(fs.readFileSync(filePath));
     }
     
     post(url)
     {
         const parsedURL = new URL(url);
-        const filePath = path.resolve(path.dirname(''), `__tests__/fixtures/POST/${parsedURL.hostname}${parsedURL.pathname.replaceAll(/\/$/g, "")}.json`);
+        let parts = [
+            "__tests__",
+            "fixtures",
+            this.#prefix,
+            "POST",
+            parsedURL.hostname + parsedURL.pathname.replaceAll(/\/$/g, "")
+        ].filter(entry=>!!entry);
+        const filePath = path.resolve(path.dirname(''), parts.join("/") + ".json");
         return new Request(fs.readFileSync(filePath));
     }
 }
-
-export const FakeHTTPClient = new HTTPClient();
