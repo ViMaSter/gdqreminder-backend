@@ -60,6 +60,8 @@ export class DataContainer
       entry.fields.endTime = new Date(entry.fields.endtime);
       delete entry.fields.endtime;
 
+      entry.fields.event = eventShort;
+
       return [entry.pk, entry.fields];
     }));
     this.#data.runsWithPK = {...this.#data.runsWithPK, ...runsWithPKById};
@@ -222,7 +224,8 @@ export class DataContainer
 
   #dataAtLastCheck = {
     timestamp: -1,
-    trackedRuns: []
+    currentlyTrackedRun: null,
+    notifiedRuns: []
   };
 
   async getRunToMonitor()
@@ -231,6 +234,14 @@ export class DataContainer
     const now = this.#timeProvider.getCurrent();
 
     this.#dataAtLastCheck.timestamp = now.getTime();
+
+    if (this.#dataAtLastCheck.currentlyTrackedRun)
+    {
+      if (!this.#dataAtLastCheck.notifiedRuns.includes(this.#dataAtLastCheck.currentlyTrackedRun.pk))
+      {
+        return this.#dataAtLastCheck.currentlyTrackedRun;
+      }
+    }
 
     if (lastCalledAt == -1)
     {
@@ -244,80 +255,87 @@ export class DataContainer
       return;
     }
 
-    if (this.#dataAtLastCheck.trackedRuns.includes(nextRun.pk))
+    if (this.#dataAtLastCheck.notifiedRuns.includes(nextRun.pk))
     {
       return;
     }
 
+    this.#dataAtLastCheck.currentlyTrackedRun = nextRun;
+    this.#dataAtLastCheck.endTimeOfPreviousRun = await this.getCurrentRun()?.endTime;
     return nextRun;
   }
 
   async checkTwitch()
   {
-    const nextRun = await this.getRunToMonitor();
-    if (!nextRun)
+    const monitoredRun = await this.getRunToMonitor();
+    if (!monitoredRun)
     {
       return;
     }
     
-    if (nextRun.twitch_name)
+    if (monitoredRun.twitch_name)
     {
-      if (await this.#twitch.isSubstringOfGameNameOrStreamTitle(nextRun.twitch_name))
+      if (await this.#twitch.isSubstringOfGameNameOrStreamTitle(monitoredRun.twitch_name))
       {
-        this.#dataAtLastCheck.trackedRuns.push(nextRun.pk);
-        this.#emitEvent(nextRun.pk);
+        this.#dataAtLastCheck.notifiedRuns.push(monitoredRun.pk);
+        this.#emitEvent(monitoredRun.pk);
         return;
       }
     }
 
-    if (nextRun.display_name)
+    if (monitoredRun.display_name)
     {
-      if (await this.#twitch.isSubstringOfGameNameOrStreamTitle(nextRun.display_name))
+      if (await this.#twitch.isSubstringOfGameNameOrStreamTitle(monitoredRun.display_name))
       {
-        this.#dataAtLastCheck.trackedRuns.push(nextRun.pk);
-        this.#emitEvent(nextRun.pk);
+        this.#dataAtLastCheck.notifiedRuns.push(monitoredRun.pk);
+        this.#emitEvent(monitoredRun.pk);
         return;
       }
     }
   }
   async checkFor10MinuteWarning()
   {
-    const nextRun = await this.getRunToMonitor();
-    if (!nextRun)
+    const monitoredRun = await this.getRunToMonitor();
+    if (!monitoredRun)
     {
       return;
     }
     
-    if (!moment(this.#dataAtLastCheck.timestamp).add(10, 'minutes').isAfter(nextRun.startTime))
+    if (!moment(this.#dataAtLastCheck.timestamp).add(10, 'minutes').isAfter(monitoredRun.startTime))
     {
       return;
     }
 
-    this.#dataAtLastCheck.trackedRuns.push(nextRun.pk);
-    this.#emitEvent(nextRun.pk);
+    this.#dataAtLastCheck.notifiedRuns.push(monitoredRun.pk);
+    this.#emitEvent(monitoredRun.pk);
   }
   async previousRunHasUpdatedEndTime()
   {
-    const nextRun = await this.getRunToMonitor();
-    const previousRunIndex = this.#data.events[currentEvent.pk].runOrder.findIndex(run => run.pk == currentRun.pk) - 1;
+    const monitoredRun = await this.getRunToMonitor();
+    if (!monitoredRun)
+    {
+      return;
+    }
+    
+    await this.getEvent(monitoredRun.event); // refresh event data
+    const previousRunIndex = this.#data.events[this.#data.eventShortToPK[monitoredRun.event]].runOrder.findIndex(run => run.pk == monitoredRun.pk) - 1;
     if (previousRunIndex < 0)	
     {
       return;
     }
 
-    const previousRun = this.#data.events[nextRun.event].runOrder[previousRunIndex];
+    const previousRun = this.#data.events[this.#data.eventShortToPK[monitoredRun.event]].runOrder[previousRunIndex];
     if (!this.#dataAtLastCheck.endTimeOfPreviousRun)
     {
       this.#dataAtLastCheck.endTimeOfPreviousRun = previousRun.endTime;
       return;
     }
-    if (this.#dataAtLastCheck.endTimeOfPreviousRun == previousRun.endTime)
+    if (this.#dataAtLastCheck.endTimeOfPreviousRun.getTime() == previousRun.endTime.getTime())
     {
       return;
     }
 
-    this.#dataAtLastCheck.trackedRuns.push(nextRun.pk);
-    this.#emitEvent(nextRun.pk);
-    this.#dataAtLastCheck.endTimeOfPreviousRun = previousRun.endTime;
+    this.#dataAtLastCheck.notifiedRuns.push(monitoredRun.pk);
+    this.#emitEvent(monitoredRun.pk);
   }
 }
