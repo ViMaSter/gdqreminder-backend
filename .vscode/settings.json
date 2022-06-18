@@ -7,5 +7,5 @@
         "Mahnke",
         "sgdq"
     ],
-    "jest.jestCommandLine": "NODE_OPTIONS=--experimental-vm-modules npx jest",
+    "jest.jestCommandLine": "NODE_OPTIONS=--experimental-vm-modules npx jest --testPathIgnorePatterns=.*\\.long\\.test\\.js",
 }
