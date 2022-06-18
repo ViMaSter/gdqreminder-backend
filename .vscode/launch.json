@@ -34,11 +34,29 @@
         {
             "type": "pwa-node",
             "request": "launch",
-            "name": "Launch Program",
+            "name": "Launch real time",
             "skipFiles": [
                 "<node_internals>/**"
             ],
             "program": "${workspaceFolder}/main.js",
+            "args": [
+                "--refreshIntervalInMS=60000"
+            ],
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "pwa-node",
+            "request": "launch",
+            "name": "Launch 1hr before AGDQ2015, 50min/5s",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}/main.js",
+            "args": [
+                "--startTime=2015-01-04T16:00:00Z", // 15 minutes before agdq
+                "--speedup=600",
+                "--refreshIntervalInMS=5000"
+            ],
             "envFile": "${workspaceFolder}/.env"
         },
         {

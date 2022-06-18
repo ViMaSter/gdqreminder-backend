@@ -1,5 +1,5 @@
 import { RealTimeProvider } from "../../../services/timeProvider/realTimeProvider";
-import { FakeTimeProvider } from "../../stubs/fakeTimeProvider";
+import { FakeTimeProvider } from "../../../services/timeProvider/fakeTimeProvider";
 
 describe("FakeTimeProvider", () => {
     describe("compared to RealTimeProvider", () => {
@@ -28,6 +28,12 @@ describe("FakeTimeProvider", () => {
 
     describe("core functionality", () => {
         const firstOfJanuary2000 = new Date(2000, 0, 1);
+
+        test('throws if initialized with a string', async () => {
+            expect(() => {
+                new FakeTimeProvider(firstOfJanuary2000.toISOString());
+            }).toThrow(new Error("Start time should be in ms as number"));
+        });
 
         test('does not progress on its own', async () => {
             const fakeTimeProvider = new FakeTimeProvider(firstOfJanuary2000.getTime());

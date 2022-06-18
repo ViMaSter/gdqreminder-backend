@@ -1,6 +1,7 @@
-import { FakeTimeProvider } from "../../stubs/fakeTimeProvider";
+import { FakeTimeProvider } from "../../../services/timeProvider/fakeTimeProvider";
 import { FakeHTTPClient } from "../../stubs/fakeHTTPClient";
 import { DataContainer } from "../../../store/dataContainer"
+import { Twitch } from '../../../services/twitch.js'
 
 describe("dataContainer", () => {
     const runPKs = {
@@ -66,7 +67,8 @@ describe("dataContainer", () => {
 
         Object.entries(pointsInTimeAndExpectedResponse).forEach(([date, expectedResults]) => {
             describe("at "+date, () => {
-                const dataContainer = new DataContainer(new FakeHTTPClient("during-preshow"), new FakeTimeProvider(new Date(date)));
+                const fakeHTTPClient = new FakeHTTPClient("during-preshow")
+                const dataContainer = new DataContainer(fakeHTTPClient, new FakeTimeProvider(new Date(date)), new Twitch(fakeHTTPClient));
 
                 Object.entries(expectedResults).forEach(([relativeTime, dataPair]) => {
                     // capitalize first letter of relativeTime

@@ -1,0 +1,22 @@
+[
+  {
+    "data": {
+      "user": {
+        "id": "27132299",
+        "displayName": "GamesDoneQuick",
+        "stream": null,
+        "broadcastSettings": {
+          "id": "27132299",
+          "title": "",
+          "__typename": "BroadcastSettings"
+        },
+        "__typename": "User"
+      }
+    },
+    "extensions": {
+      "durationMilliseconds": 59,
+      "operationName": "ComscoreStreamingQuery",
+      "requestID": "01G5R6TRNW3WQ1C2C61XTNHDXQ"
+    }
+  }
+]

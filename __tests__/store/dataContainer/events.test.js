@@ -1,6 +1,7 @@
-import { FakeTimeProvider } from "../../stubs/fakeTimeProvider";
+import { FakeTimeProvider } from "../../../services/timeProvider/fakeTimeProvider";
 import { FakeHTTPClient } from "../../stubs/fakeHTTPClient";
 import { DataContainer } from "../../../store/dataContainer"
+import { Twitch } from '../../../services/twitch.js'
 
 describe("dataContainer", () => {
     describe("relativeEvents", () => {
@@ -40,7 +41,8 @@ describe("dataContainer", () => {
 
         Object.entries(pointsInTimeAndExpectedResponse).forEach(([date, expectedResults]) => {
             describe("at "+date, () => {
-                const dataContainer = new DataContainer(new FakeHTTPClient("during-preshow"), new FakeTimeProvider(new Date(date)));
+                const fakeHTTPClient = new FakeHTTPClient("during-preshow")
+                const dataContainer = new DataContainer(fakeHTTPClient, new FakeTimeProvider(new Date(date)), new Twitch(fakeHTTPClient));
 
                 Object.entries(expectedResults).forEach(([relativeTime, result]) => {
                     // capitalize first letter of relativeTime
@@ -64,7 +66,8 @@ describe("dataContainer", () => {
 
     describe("relevantEvent", () => {
         const timeProvider = new FakeTimeProvider(new Date());
-        const dataContainer = new DataContainer(new FakeHTTPClient("during-preshow"), timeProvider);
+        const fakeHTTPClient = new FakeHTTPClient("during-preshow")
+        const dataContainer = new DataContainer(fakeHTTPClient, timeProvider, new Twitch(fakeHTTPClient));
         test("relevantEvent returns current event if we are mid event", async () => {
             const duringAGDQ2022 = new Date("2022-01-11T17:07:00Z");
             const duringSGDQ2022 = new Date("2022-06-30T17:07:00Z");

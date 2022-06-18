@@ -15,4 +15,12 @@ describe("twitch", () => {
     it("returns false, if current stream title contains specified string", async () => {
         expect(await twitch.isSubstringOfGameNameOrStreamTitle("Checkpoint")).toBeFalsy();
     })
+    it("returns false, if the stream is offline", async () => {
+        const offline = new Twitch(new FakeHTTPClient("twitch-offline"), "");
+        expect(await offline.isSubstringOfGameNameOrStreamTitle("Pumpkin Jack")).toBeFalsy();
+    })
+    it("returns false, if no broadcast info", async () => {
+        const offline = new Twitch(new FakeHTTPClient("twitch-missing-broadcast"), "");
+        expect(await offline.isSubstringOfGameNameOrStreamTitle("Pumpkin Jack")).toBeFalsy();
+    })
 })
