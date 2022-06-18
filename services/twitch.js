@@ -14,7 +14,7 @@ export class Twitch {
             json: [{
                 "operationName": "ComscoreStreamingQuery",
                 "variables": {
-                    "channel": "loadingreadyrun",
+                    "channel": "gamesdonequick",
                     "clipSlug": "",
                     "isClip": false,
                     "isLive": true,
@@ -29,14 +29,18 @@ export class Twitch {
                 }
             }]
         }).json();
-        const gameName = response[0].data.user.stream.game.name.toLowerCase();
-        if (gameName.includes(substring.toLowerCase())) {
-            return true;
-        }
         const streamName = response[0].data.user.broadcastSettings.title.toLowerCase();
         if (streamName.includes(substring.toLowerCase())) {
             return true;
         }
+        if (response[0].data.user.stream)
+        {
+            const gameName = response[0].data.user.stream.game.name.toLowerCase();
+            if (gameName.includes(substring.toLowerCase())) {
+                return true;
+            }
+        }
+
         return false;
     }
 }

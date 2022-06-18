@@ -1,0 +1,22 @@
+[
+  {
+    "data": {
+      "user": {
+        "id": "22510310",
+        "displayName": "GamesDoneQuick",
+        "stream": null,
+        "broadcastSettings": {
+          "id": "22510310",
+          "title": "Juneteenth Celebration - Starts June 18th @1PM Eastern",
+          "__typename": "BroadcastSettings"
+        },
+        "__typename": "User"
+      }
+    },
+    "extensions": {
+      "durationMilliseconds": 41,
+      "operationName": "ComscoreStreamingQuery",
+      "requestID": "01G5V0XEPYJHB0K1M50WT2DT9V"
+    }
+  }
+]
