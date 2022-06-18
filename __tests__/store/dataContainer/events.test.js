@@ -6,6 +6,11 @@ import { Twitch } from '../../../services/twitch.js'
 describe("dataContainer", () => {
     describe("relativeEvents", () => {
         const pointsInTimeAndExpectedResponse = {
+            "2010-01-01": { // before CGDQ with no previous event
+                "previous": null,
+                "current": null,
+                "next": "CGDQ"
+            },
             "2022-01-01": { // before AGDQ2022 with SGDQ2022 already scheduled afterwards
                 "previous": "SGDQ2021",
                 "current": null,
@@ -20,6 +25,19 @@ describe("dataContainer", () => {
                 "previous": "AGDQ2022",
                 "current": null,
                 "next": "SGDQ2022"
+            },
+            
+            // identical to "2022-01-30" but with a different order of keys
+            "2022-01-31": { // after  AGDQ2022 with SGDQ2022 already scheduled afterwards
+                "current": null,
+                "previous": "AGDQ2022",
+                "next": "SGDQ2022"
+            },
+            // identical to "2022-01-30" but with a different order of keys
+            "2022-02-01": { // after  AGDQ2022 with SGDQ2022 already scheduled afterwards
+                "next": "SGDQ2022",
+                "previous": "AGDQ2022",
+                "current": null,
             },
 
             "2022-06-14": { // before SGDQ2022 with no new event scheduled

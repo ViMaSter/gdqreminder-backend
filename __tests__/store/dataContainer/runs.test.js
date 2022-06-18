@@ -90,5 +90,12 @@ describe("dataContainer", () => {
                 });
             })
         });
+
+        test("getting run to monitor without run coming up", async () => {
+            const fakeHTTPClient = new FakeHTTPClient("during-preshow")
+            const dataContainer = new DataContainer(fakeHTTPClient, new FakeTimeProvider(new Date("2030-01-01")), new Twitch(fakeHTTPClient));
+            await dataContainer.getRunToMonitor();
+            expect(await dataContainer.getRunToMonitor()).toBeNull();
+        })
     });
 });
