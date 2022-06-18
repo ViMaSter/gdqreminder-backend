@@ -4,6 +4,10 @@ export class FakeTimeProvider
     #passedTimeInMS = 0;
     constructor(startTimeInMS)
     {
+        if (typeof startTimeInMS == "string")
+        {
+            throw new Error("Start time should be in ms as number");
+        }
         this.#startTimeInMS = startTimeInMS;
     }
 

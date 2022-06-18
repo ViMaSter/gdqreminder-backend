@@ -1,5 +1,4 @@
 import moment from 'moment';
-import { Twitch } from '../services/twitch.js'
 
 export class DataContainer
 {
@@ -15,12 +14,12 @@ export class DataContainer
   #emitEvent = null;
   #twitch = null;
 
-  constructor(gotClient, timeProvider, emitEvent)
+  constructor(gotClient, timeProvider, twitch, emitEvent)
   {
     this.#gotClient = gotClient;
     this.#timeProvider = timeProvider;
     this.#emitEvent = emitEvent;
-    this.#twitch = new Twitch(this.#gotClient);
+    this.#twitch = twitch;
   }
 
   async getAllEvents() 
@@ -245,23 +244,40 @@ export class DataContainer
 
     if (lastCalledAt == -1)
     {
-      console.log(`initial check at ${now.toISOString()}`);
+      console.log(`[MONITOR]: initial check: ${now.toISOString()}`);
       return;
     }
 
-    const nextRun = await this.getNextRun();
-    if (!nextRun)
-    {
-      return;
-    }
+    let nextRun = this.#dataAtLastCheck.currentlyTrackedRun;
+    do {
+      if (!this.#dataAtLastCheck.currentlyTrackedRun)
+      {
+        nextRun = await this.getNextRun();
+        if (!nextRun)
+        {
+          return;
+        }
+        break;
+      }
+      const eventOfLastTrackedRun = this.#data.events[this.#data.eventShortToPK[nextRun.event]];
+      const nextRunIndex = eventOfLastTrackedRun.runsInOrder.findIndex(run => run.pk == nextRun.pk)+1;
+      nextRun = eventOfLastTrackedRun.runsInOrder[nextRunIndex]
+      if (!nextRun)
+      {
+        return;
+      }
+  
+      if (!this.#dataAtLastCheck.notifiedRuns.includes(nextRun.pk))
+      {
+        break;
+      }
+      console.warn(`next run we should be tracking is ${nextRun.pk}, but already informed about it, moving to the next`)
+      continue;
+    } while(nextRun);
 
-    if (this.#dataAtLastCheck.notifiedRuns.includes(nextRun.pk))
-    {
-      return;
-    }
-
+    console.log(`[MONITOR] run pk: ${nextRun.pk}`);
+    this.#dataAtLastCheck.endTimeOfPreviousRun = this.#dataAtLastCheck.currentlyTrackedRun?.endTime;
     this.#dataAtLastCheck.currentlyTrackedRun = nextRun;
-    this.#dataAtLastCheck.endTimeOfPreviousRun = await this.getCurrentRun()?.endTime;
     return nextRun;
   }
 
@@ -337,5 +353,28 @@ export class DataContainer
 
     this.#dataAtLastCheck.notifiedRuns.push(monitoredRun.pk);
     this.#emitEvent(monitoredRun.pk);
+  }
+
+  #continueLoop = false;
+  async startLoop(config) {
+    this.#continueLoop = true;
+    const {beforeNextCheck, afterEachCheck, refreshIntervalInMS} = config;
+    while (this.#continueLoop)
+    {
+        const startAt = moment(this.#timeProvider.getCurrent());
+        beforeNextCheck?.(startAt);
+        await this.checkFor10MinuteWarning();
+        await this.checkTwitch();
+        await this.previousRunHasUpdatedEndTime();
+        console.log("[LOOP] duration: " + moment.utc(moment(this.#timeProvider.getCurrent()).diff(startAt)).format("HH:mm:ss.SSS"));
+        await new Promise((resolve) => {
+          setTimeout(resolve, refreshIntervalInMS)
+          afterEachCheck?.(startAt);
+        });
+    }
+  }
+
+  async stopLoop() {
+    this.#continueLoop = false;
   }
 }
