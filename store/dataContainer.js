@@ -76,8 +76,8 @@ export class DataContainer
 
     const eventIndex = this.#data.eventOrder.findIndex(event=>event.short === eventShort);
 
-    this.#data.events[eventPK].runOrder = runsInOrder;
-    this.#data.eventOrder[eventIndex].runOrder = runsInOrder;
+    this.#data.events[eventPK].runsInOrder = runsInOrder;
+    this.#data.eventOrder[eventIndex].runsInOrder = runsInOrder;
 
     const lastRunOfEvent = runsInOrder.at(-1);
 
@@ -169,17 +169,17 @@ export class DataContainer
 
     if (currentRun != null)
     {
-      const previousRunIndex = this.#data.events[currentEvent.pk].runOrder.findIndex(run => run.pk == currentRun.pk) - 1;
+      const previousRunIndex = this.#data.events[currentEvent.pk].runsInOrder.findIndex(run => run.pk == currentRun.pk) - 1;
       if (previousRunIndex < 0)
       {
         return null;
       }
-      return this.#data.events[currentEvent.pk].runOrder[previousRunIndex];
+      return this.#data.events[currentEvent.pk].runsInOrder[previousRunIndex];
     }
 
     if (currentEvent.endTime <= this.#timeProvider.getCurrent())
     {
-      return this.#data.events[currentEvent.pk].runOrder.at(-1);
+      return this.#data.events[currentEvent.pk].runsInOrder.at(-1);
     }
 
     return null;
@@ -195,7 +195,7 @@ export class DataContainer
 
     const currentEventPK = currentEvent.pk;
 
-    const currentRun = this.#data.events[currentEventPK].runOrder.find(run => run.startTime <= this.#timeProvider.getCurrent() && this.#timeProvider.getCurrent() < run.endTime);
+    const currentRun = this.#data.events[currentEventPK].runsInOrder.find(run => run.startTime <= this.#timeProvider.getCurrent() && this.#timeProvider.getCurrent() < run.endTime);
     return currentRun;
   }
 
@@ -206,17 +206,17 @@ export class DataContainer
 
     if (currentRun != null)
     {
-      const nextRunIndex = this.#data.events[currentEvent.pk].runOrder.findIndex(run => run.pk == currentRun.pk) + 1;
-      if (nextRunIndex >= this.#data.events[currentEvent.pk].runOrder.length)
+      const nextRunIndex = this.#data.events[currentEvent.pk].runsInOrder.findIndex(run => run.pk == currentRun.pk) + 1;
+      if (nextRunIndex >= this.#data.events[currentEvent.pk].runsInOrder.length)
       {
         return null;
       }
-      return this.#data.events[currentEvent.pk].runOrder[nextRunIndex];
+      return this.#data.events[currentEvent.pk].runsInOrder[nextRunIndex];
     }
 
     if (currentEvent.startTime > this.#timeProvider.getCurrent())
     {
-      return this.#data.events[currentEvent.pk].runOrder.at(0);
+      return this.#data.events[currentEvent.pk].runsInOrder.at(0);
     }
 
     return null;
@@ -316,15 +316,15 @@ export class DataContainer
     {
       return;
     }
-    
+
     await this.getEvent(monitoredRun.event); // refresh event data
-    const previousRunIndex = this.#data.events[this.#data.eventShortToPK[monitoredRun.event]].runOrder.findIndex(run => run.pk == monitoredRun.pk) - 1;
+    const previousRunIndex = this.#data.events[this.#data.eventShortToPK[monitoredRun.event]].runsInOrder.findIndex(run => run.pk == monitoredRun.pk) - 1;
     if (previousRunIndex < 0)	
     {
       return;
     }
 
-    const previousRun = this.#data.events[this.#data.eventShortToPK[monitoredRun.event]].runOrder[previousRunIndex];
+    const previousRun = this.#data.events[this.#data.eventShortToPK[monitoredRun.event]].runsInOrder[previousRunIndex];
     if (!this.#dataAtLastCheck.endTimeOfPreviousRun)
     {
       this.#dataAtLastCheck.endTimeOfPreviousRun = previousRun.endTime;
