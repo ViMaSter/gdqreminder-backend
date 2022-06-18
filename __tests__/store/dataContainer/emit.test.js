@@ -116,5 +116,29 @@ describe("dataContainer", () => {
                 });
             });
         })
+
+        test("full event cycle", async () => {
+            const timeProvider = new FakeTimeProvider(new Date("2022-01-01T00:00:00Z"));
+            const emissionMethod = jest.fn();
+            const fakeHTTPClient = new FakeHTTPClient("during-pumpkin_jack");
+            const dataContainer = new DataContainer(fakeHTTPClient, timeProvider, emissionMethod);
+            await dataContainer.getRunToMonitor();
+
+            const agdq2022 = await dataContainer.getEvent("agdq2022");
+            const pkWithStartTime = Object.fromEntries(agdq2022.runsInOrder.map(run => [run.pk, run.startTime]))
+            const timesToTest = Object.values(pkWithStartTime).map(startTime=> 
+                [-11, -10, -9, 0, 9, 10, 11].map(offset=>moment(startTime).add(offset, "minutes"))
+            ).flat();
+
+            for (const timestamp of timesToTest)
+            {
+                timeProvider.setTime(timestamp.valueOf());
+                await dataContainer.checkFor10MinuteWarning();
+                await dataContainer.checkTwitch();
+                await dataContainer.previousRunHasUpdatedEndTime();
+            }
+            
+            expect(emissionMethod.mock.calls.length).toBe(agdq2022.runsInOrder.length);
+        });
     });
 });
