@@ -9,13 +9,15 @@ export class DataContainer
     "runsWithPK": {},
   };
 
+  #logger = null;
   #gotClient = null;
   #timeProvider = null;
   #emitEvent = null;
   #twitch = null;
 
-  constructor(gotClient, timeProvider, twitch, emitEvent)
+  constructor(logger, gotClient, timeProvider, twitch, emitEvent)
   {
+    this.#logger = logger;
     this.#gotClient = gotClient;
     this.#timeProvider = timeProvider;
     this.#emitEvent = emitEvent;
@@ -245,7 +247,7 @@ export class DataContainer
 
     if (lastCalledAt == -1)
     {
-      console.log(`[MONITOR]: initial check: ${now.toISOString()}`);
+      this.#logger.info(`[MONITOR]: initial check: ${now.toISOString()}`);
       return;
     }
 
@@ -278,11 +280,11 @@ export class DataContainer
       {
         break;
       }
-      console.warn(`next run we should be tracking is ${nextRun.pk}, but already informed about it, moving to the next`)
+      this.#logger.warn(`next run we should be tracking is ${nextRun.pk}, but already informed about it, moving to the next`)
       continue;
     } while(nextRun);
 
-    console.log(`[MONITOR] run pk: ${nextRun.pk}`);
+    this.#logger.info(`[MONITOR] run pk: ${nextRun.pk}`);
     this.#dataAtLastCheck.endTimeOfPreviousRun = this.#dataAtLastCheck.currentlyTrackedRun?.endTime;
     this.#dataAtLastCheck.currentlyTrackedRun = nextRun;
     return nextRun;
@@ -373,7 +375,7 @@ export class DataContainer
         await this.checkFor10MinuteWarning();
         await this.checkTwitch();
         await this.previousRunHasUpdatedEndTime();
-        console.log("[LOOP] duration: " + moment.utc(moment(this.#timeProvider.getCurrent()).diff(startAt)).format("HH:mm:ss.SSS"));
+        this.#logger.info("[LOOP] duration: " + moment.utc(moment(this.#timeProvider.getCurrent()).diff(startAt)).format("HH:mm:ss.SSS"));
         await new Promise((resolve) => {
           setTimeout(resolve, refreshIntervalInMS)
           afterEachCheck?.(startAt);

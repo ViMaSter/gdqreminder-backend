@@ -14,7 +14,7 @@ describe("integration", () => {
     const timeProvider = new FakeTimeProvider(new Date(fifteenMinutesBeforeAGDQ2022).getTime());
     const fakeHTTPClient = new FakeHTTPClient("integration/0-before-preshow");
     
-    const dataContainer = new DataContainer(fakeHTTPClient, timeProvider, new Twitch(fakeHTTPClient, ""), emissionMethod);
+    const dataContainer = new DataContainer(console, fakeHTTPClient, timeProvider, new Twitch(fakeHTTPClient, ""), emissionMethod);
     const loopWithEvents = new Promise(async (resolve, reject) => {
         const events = {
             "2022-01-09T16:35:00.000Z": () => {
@@ -50,13 +50,13 @@ describe("integration", () => {
         };
         const checkForEvents = (now) => {
             timeProvider.passTime(refreshIntervalInMS * speedup);
-            console.log(`[TIME] Passing ${((refreshIntervalInMS * speedup) / 1000)} seconds; now ${timeProvider.getCurrent().toISOString()}`);
+            console.info(`[TIME] Passing ${((refreshIntervalInMS * speedup) / 1000)} seconds; now ${timeProvider.getCurrent().toISOString()}`);
             Object.keys(events).forEach(key => {
                 if (!moment(key).isBefore(now))
                 {
                     return;
                 }
-                console.log(`[EVENT] at ${key}, as it's ${now.toISOString()}`);
+                console.info(`[EVENT] at ${key}, as it's ${now.toISOString()}`);
                 events[key]();
                 delete events[key];
             });
@@ -67,7 +67,7 @@ describe("integration", () => {
                 {
                     return;
                 }
-                console.log(`[VALIDATION] at ${key}, as it's ${now.toISOString()}`);
+                console.info(`[VALIDATION] at ${key}, as it's ${now.toISOString()}`);
                 validations[key]();
                 delete validations[key];
             });

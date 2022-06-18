@@ -48,6 +48,7 @@
             "type": "pwa-node",
             "request": "launch",
             "name": "Launch 1hr before AGDQ2015, 50min/5s",
+            "outputCapture": "std",
             "skipFiles": [
                 "<node_internals>/**"
             ],

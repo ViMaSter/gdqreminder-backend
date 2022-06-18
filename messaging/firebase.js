@@ -1,6 +1,11 @@
 import { getMessaging } from 'firebase-admin/messaging';
 
 export default class Firebase {
+    #logger = null;
+    constructor(logger)
+    {
+        this.#logger = logger;
+    }
     sentTestMessage() {
         const vincent = '3961'; // agdq2020 -> A Hat In Time
         const daniel = '5276'; // ???
@@ -32,10 +37,10 @@ export default class Firebase {
 
         getMessaging().send(message)
             .then((response) => {
-                console.log('Successfully sent message:', response);
+                this.#logger.info('Successfully sent message: ' + response);
             })
             .catch((error) => {
-                console.log('Error sending message:', error);
+                this.#logger.info('Error sending message: ' + error);
             });
     }
 }
