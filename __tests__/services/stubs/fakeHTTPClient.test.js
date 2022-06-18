@@ -21,15 +21,15 @@ describe("FakeHTTPClient", () => {
     });
 
     test(`can set folder prefix`, async () => {
-        const client = new FakeHTTPClient("test/1");
+        const client = new FakeHTTPClient("httpClientTest/1");
         expect(await client.get("https://google.com").json()).toBe(1);
-        client.setPrefix("test/2");
+        client.setPrefix("httpClientTest/2");
         expect(await client.get("https://google.com").json()).toBe(2);
     })
 
     test(`throws if no error prefix is set`, () => {
         expect(() => new FakeHTTPClient("")).toThrow(new PrefixEmptyError());
-        expect(() => new FakeHTTPClient("test").setPrefix("")).toThrow(new PrefixEmptyError());
+        expect(() => new FakeHTTPClient("httpClientTest").setPrefix("")).toThrow(new PrefixEmptyError());
     })
     
 })
