@@ -127,8 +127,8 @@ describe("dataContainer", () => {
             const agdq2022 = await dataContainer.getEvent("agdq2022");
             const pkWithStartTime = Object.fromEntries(agdq2022.runsInOrder.map(run => [run.pk, run.startTime]))
             const timesToTest = Object.values(pkWithStartTime).map(startTime=> 
-                [-11, -10, -9, 0, 9, 10, 11].map(offset=>moment(startTime).add(offset, "minutes"))
-            ).flat();
+                [-11, -10, -9, 0, 9, 10, 11].map(offset=>moment(startTime).clone().add(offset, "minutes"))
+            ).flat().sort((a,b)=>a.valueOf()-b.valueOf());
 
             for (const timestamp of timesToTest)
             {
