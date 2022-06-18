@@ -124,21 +124,30 @@ describe("dataContainer", () => {
             const dataContainer = new DataContainer(fakeHTTPClient, timeProvider, emissionMethod);
             await dataContainer.getRunToMonitor();
 
-            const agdq2022 = await dataContainer.getEvent("agdq2022");
-            const pkWithStartTime = Object.fromEntries(agdq2022.runsInOrder.map(run => [run.pk, run.startTime]))
-            const timesToTest = Object.values(pkWithStartTime).map(startTime=> 
-                [-11, -10, -9, 0, 9, 10, 11].map(offset=>moment(startTime).clone().add(offset, "minutes"))
-            ).flat().sort((a,b)=>a.valueOf()-b.valueOf());
-
-            for (const timestamp of timesToTest)
+            const bufferInMinutes = 30;
+            const eventShorts = ["agdq2022", "sgdq2022"];
+            for (let j = 0; j < eventShorts.length; ++j)
             {
-                timeProvider.setTime(timestamp.valueOf());
-                await dataContainer.checkFor10MinuteWarning();
-                await dataContainer.checkTwitch();
-                await dataContainer.previousRunHasUpdatedEndTime();
+                const eventShort = eventShorts[j];
+                const event = await dataContainer.getEvent(eventShort);
+                const eventStartTime = moment(event.startTime).subtract(bufferInMinutes, "minutes");
+                const eventEndTime = moment(event.endTime).add(bufferInMinutes, "minutes");
+
+                const duration = moment.duration(eventEndTime.diff(eventStartTime));
+                const minutesInAGDQ = Math.ceil(duration.asMinutes());
+
+                timeProvider.setTime(eventStartTime.valueOf());
+                for (let i = 0; i < minutesInAGDQ; ++i)
+                {
+                    timeProvider.passTime(60 * 1000);
+                    await dataContainer.checkFor10MinuteWarning();
+                    await dataContainer.checkTwitch();
+                    await dataContainer.previousRunHasUpdatedEndTime();
+                }
+                expect(emissionMethod.mock.calls.length).toBe(event.runsInOrder.length);
+                emissionMethod.mock.calls = [];
             }
-            
-            expect(emissionMethod.mock.calls.length).toBe(agdq2022.runsInOrder.length);
+
         });
     });
 });
