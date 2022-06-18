@@ -1,4 +1,4 @@
-import { FakeTimeProvider } from "../../stubs/fakeTimeProvider";
+import { FakeTimeProvider } from "../../../services/timeProvider/fakeTimeProvider";
 import { FakeHTTPClient } from "../../stubs/fakeHTTPClient";
 import { DataContainer } from "../../../store/dataContainer"
 import moment from 'moment';
