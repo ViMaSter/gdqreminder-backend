@@ -43,12 +43,6 @@ export class DataContainer
   }
   async getEvent(eventShort)
   {
-    if (this.#data.events.hasOwnProperty(eventShort)?.endTime)
-    {
-        const eventPK = this.#data.eventShortToPK[eventShort];
-        return this.#data.events[eventPK];
-    }
-
     const runs = await this.#gotClient.get(`https://gamesdonequick.com/tracker/api/v1/search/?type=run&eventshort=${eventShort}`).json();
     const runsWithPKById = Object.fromEntries(runs.map(entry => {
       entry.fields.pk = entry.pk;
@@ -78,10 +72,13 @@ export class DataContainer
     this.#data.events[eventPK].runsInOrder = runsInOrder;
     this.#data.eventOrder[eventIndex].runsInOrder = runsInOrder;
 
-    const lastRunOfEvent = runsInOrder.at(-1);
+    const lastRunOfEvent = runsInOrder?.at(-1);
 
-    this.#data.events[eventPK].endTime = new Date(this.#data.runsWithPK[lastRunOfEvent.pk].endTime);
-    this.#data.eventOrder[eventIndex].endTime = new Date(this.#data.runsWithPK[lastRunOfEvent.pk].endTime);
+    if (lastRunOfEvent)
+    {
+      this.#data.events[eventPK].endTime = new Date(this.#data.runsWithPK[lastRunOfEvent.pk].endTime);
+      this.#data.eventOrder[eventIndex].endTime = new Date(this.#data.runsWithPK[lastRunOfEvent.pk].endTime);
+    }
 
     return this.#data.events[eventPK];
   }
@@ -114,6 +111,10 @@ export class DataContainer
       await this.getAllEvents();
     }
     const eventsStartedBeforeNow = this.#data.eventOrder.filter(event=>new Date(event.startTime) <= this.#timeProvider.getCurrent());
+    if (eventsStartedBeforeNow.length == 0)
+    {
+      return null;
+    }
     const currentEvent = eventsStartedBeforeNow.at(-1);
     const event = await this.getEvent(currentEvent.short);
     if (new Date(event.endTime) > this.#timeProvider.getCurrent())
@@ -152,8 +153,8 @@ export class DataContainer
     {
       await this.getAllEvents();
     }
-    const eventsStartedBeforeNow = this.#data.eventOrder.filter(event=>new Date(event.startTime) > this.#timeProvider.getCurrent());
-    const firstUpcomingEvent = eventsStartedBeforeNow.at(0);
+    const eventsStartingInTheFuture = this.#data.eventOrder.filter(event=>new Date(event.startTime) > this.#timeProvider.getCurrent());
+    const firstUpcomingEvent = eventsStartingInTheFuture.at(0);
     if (!firstUpcomingEvent)
     {
       return null;
@@ -255,7 +256,7 @@ export class DataContainer
         nextRun = await this.getNextRun();
         if (!nextRun)
         {
-          return;
+          return null;
         }
         break;
       }
