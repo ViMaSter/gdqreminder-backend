@@ -19,6 +19,7 @@ export class PrefixEmptyError extends Error {}
 export class FakeHTTPClient
 {
     #prefix = "";
+    #requestCount = 0;
     constructor(prefix)
     {
         this.setPrefix(prefix);
@@ -35,6 +36,7 @@ export class FakeHTTPClient
     
     get(url)
     {
+        ++this.#requestCount;
         const parsedURL = new URL(url);
         const fileName = parsedURL.search.replaceAll(/\W/g, "_").replaceAll(/^_?/g, "").replaceAll(/_?$/g, "");
         let parts = [
@@ -52,6 +54,7 @@ export class FakeHTTPClient
     
     post(url)
     {
+        ++this.#requestCount;
         const parsedURL = new URL(url);
         let parts = [
             "__tests__",
