@@ -259,6 +259,12 @@ export class DataContainer
         }
         break;
       }
+      const relevantEvent = await this.getRelevantEvent();
+      if (relevantEvent.short != nextRun.event)
+      {
+        nextRun = relevantEvent.runsInOrder.at(0);
+        break;
+      }
       const eventOfLastTrackedRun = this.#data.events[this.#data.eventShortToPK[nextRun.event]];
       const nextRunIndex = eventOfLastTrackedRun.runsInOrder.findIndex(run => run.pk == nextRun.pk)+1;
       nextRun = eventOfLastTrackedRun.runsInOrder[nextRunIndex]
