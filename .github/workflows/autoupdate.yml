@@ -1,7 +1,8 @@
 name: Merge `autoupdate` branches
 on:
   workflow_run:
-    workflows: ["Build + Test"]
+    workflows:
+     - Build and test
     types: 
       - completed
 
