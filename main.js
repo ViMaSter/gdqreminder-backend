@@ -68,9 +68,11 @@ const startup = async (logger, config) => {
     logger.warn("[TIMEPROVIDER] Using fake time provider");
     timeProvider = new FakeTimeProvider(new Date(startTime).getTime());
   }
-  const dataContainer = new DataContainer(logger, got, timeProvider, new Twitch(got, process.env.TWITCH_CLIENT_ID), (run) => {
-    logger.info("[EMISSION] run start: " + run);
-    new Firebase(logger).sendStartMessageForRun(run);
+
+  const firebase = new Firebase(logger);
+  const dataContainer = new DataContainer(logger, got, timeProvider, new Twitch(got, process.env.TWITCH_CLIENT_ID), (run, reason) => {
+    logger.info("[EMISSION] run start: " + run.pk);
+    firebase.sendStartMessageForRun(run, reason);
   });
 
   let dataContainerConfig = {

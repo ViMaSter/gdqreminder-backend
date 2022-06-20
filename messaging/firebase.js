@@ -16,13 +16,14 @@ export default class Firebase {
 
         sendStartMessageForRun(topic);
     }
-    sendStartMessageForRun(runPK) {
-        const topic = `run.start.${runPK}`;
+    sendStartMessageForRun(run, reason) {
+        
+        const topic = `run.start.${run.pk}`;
 
         const message = {
             notification: {
-                title: "[LOCAL] "+topic,
-                body: "👀"
+                title: `GDQ Reminder: ${run.display_name}`,
+                body: "Tappen und direkt zu Twitch!"
             },
             android: {
                 notification: {

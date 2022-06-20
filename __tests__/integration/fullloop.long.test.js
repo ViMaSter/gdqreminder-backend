@@ -20,31 +20,34 @@ describe("integration", () => {
             "2022-01-09T16:35:00.000Z": () => {
                 fakeHTTPClient.setPrefix("integration/1-twitch-game-is-nioh2");
             },
-            "2022-01-09T16:45:00.000Z": () => {
-                fakeHTTPClient.setPrefix("integration/2-twitch-title-contains-metroid-prime-hunters");
+            "2022-01-09T18:45:00.000Z": () => {
             },
-            "2022-01-09T17:00:00.000Z": () => {
+            "2022-01-09T19:00:00.000Z": () => {
                 fakeHTTPClient.setPrefix("integration/3-dkc2-is-in-the-past");
             },
-            "2022-01-09T17:30:00Z": () => {
+            "2022-01-09T19:30:00Z": () => {
                 dataContainer.stopLoop();
                 resolve(); // end test
             }
         };
         const validations = {
             "2022-01-09T16:20:00.000Z": () => {
-                expect(emissionMethod.mock.calls[0][0]).toBe(5049);
+                expect(emissionMethod.mock.calls[0][0].pk).toBe(5049);
+                expect(emissionMethod.mock.calls[0][1]).toBe(DataContainer.EmitReasons.TwitchDataMatch);
             },
             "2022-01-09T16:35:00.000Z": () => {
-                expect(emissionMethod.mock.calls[1][0]).toBe(5050);
+                expect(emissionMethod.mock.calls[1][0].pk).toBe(5050);
+                expect(emissionMethod.mock.calls[1][1]).toBe(DataContainer.EmitReasons.TwitchDataMatch);
             },
-            "2022-01-09T16:45:00.000Z": () => {
-                expect(emissionMethod.mock.calls[2][0]).toBe(5051);
+            "2022-01-09T18:45:00.000Z": () => {
+                expect(emissionMethod.mock.calls[2][0].pk).toBe(5051);
+                expect(emissionMethod.mock.calls[2][1]).toBe(DataContainer.EmitReasons.TenMinutesUntilStart);
             },
-            "2022-01-09T17:00:00.000Z": () => {
-                expect(emissionMethod.mock.calls[3][0]).toBe(5052);
+            "2022-01-09T19:00:00.000Z": () => {
+                expect(emissionMethod.mock.calls[3][0].pk).toBe(5052);
+                expect(emissionMethod.mock.calls[3][1]).toBe(DataContainer.EmitReasons.StartIsInThePast);
             },
-            "2022-01-09T17:30:00Z": () => {
+            "2022-01-09T19:30:00Z": () => {
                 resolve(); // end test
             }
         };
