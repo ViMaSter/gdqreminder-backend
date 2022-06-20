@@ -1,5 +1,6 @@
 name: Merge `autoupdate` branches
 on:
+  workflow_dispatch:
   workflow_run:
     workflows:
      - Build and test
@@ -20,3 +21,4 @@ jobs:
           UPDATE_METHOD: "rebase"
           UPDATE_RETRIES : 10
           UPDATE_RETRY_SLEEP: 30
+          LOG: "TRACE"  # or "DEBUG"
