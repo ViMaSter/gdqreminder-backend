@@ -33,6 +33,7 @@ const setupLogger = (config) =>
     handleExceptions: true,
     handleRejections: true,
   });
+  logger.info("[LOGGER] Adding console logger");
   
   if (seqHost && seqAPIKey)
   {
@@ -43,10 +44,10 @@ const setupLogger = (config) =>
       handleExceptions: true,
       handleRejections: true,
       onError: (e => { 
-        debugger;
         logger.error(e);
       }),
     }));
+    logger.info("[LOGGER] Adding seq logger");
   }
   return logger;
 };
