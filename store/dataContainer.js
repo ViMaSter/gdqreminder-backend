@@ -2,6 +2,12 @@ import moment from 'moment';
 
 export class DataContainer
 {
+  static EmitReasons = Object.freeze({
+    TenMinutesUntilStart: "0",
+    TwitchDataMatch: "1",
+    StartIsInThePast: "2"
+  });
+
   #data = {
     "eventShortToPK": {},
     "eventOrder": [],
@@ -303,7 +309,7 @@ export class DataContainer
       if (await this.#twitch.isSubstringOfGameNameOrStreamTitle(monitoredRun.twitch_name))
       {
         this.#dataAtLastCheck.notifiedRuns.push(monitoredRun.pk);
-        this.#emitEvent(monitoredRun.pk);
+        this.#emitEvent(monitoredRun, DataContainer.EmitReasons.TwitchDataMatch);
         return;
       }
     }
@@ -313,7 +319,7 @@ export class DataContainer
       if (await this.#twitch.isSubstringOfGameNameOrStreamTitle(monitoredRun.display_name))
       {
         this.#dataAtLastCheck.notifiedRuns.push(monitoredRun.pk);
-        this.#emitEvent(monitoredRun.pk);
+        this.#emitEvent(monitoredRun, DataContainer.EmitReasons.TwitchDataMatch);
         return;
       }
     }
@@ -332,7 +338,7 @@ export class DataContainer
     }
 
     this.#dataAtLastCheck.notifiedRuns.push(monitoredRun.pk);
-    this.#emitEvent(monitoredRun.pk);
+    this.#emitEvent(monitoredRun, DataContainer.EmitReasons.TenMinutesUntilStart);
   }
   async previousRunHasUpdatedEndTime()
   {
@@ -361,7 +367,7 @@ export class DataContainer
     }
 
     this.#dataAtLastCheck.notifiedRuns.push(monitoredRun.pk);
-    this.#emitEvent(monitoredRun.pk);
+    this.#emitEvent(monitoredRun, DataContainer.EmitReasons.StartIsInThePast);
   }
 
   #continueLoop = false;
