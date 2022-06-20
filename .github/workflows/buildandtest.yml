@@ -68,3 +68,11 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+  hetznerDeploy:
+    runs-on: gdqreminder
+    needs: [dockerPush]
+    if: (github.ref == 'refs/heads/main' && github.event_name == 'push')
+    steps:
+      - name: Run refresh script
+        run: refreshGDQReminder.ps1
