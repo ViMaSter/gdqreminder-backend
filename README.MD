@@ -9,8 +9,11 @@
      TWITCH_CLIENT_ID=[YOUR_GRAPHQL_TWITCH_CLIENT_ID]
    ```
 5. Replace `[YOUR_GRAPHQL_TWITCH_CLIENT_ID]` with a client ID that has access to Twitch's GraphQL API
-6. Run `docker run -v $(pwd):/firebase -d --env-file ./.env ghcr.io/vimaster/gdqreminder-backend:latest --refreshIntervalInMS=60000`
-7. Optionally, the app supports logging to a [Seq](https://datalust.co/seq) instance. To enable it, add the following parameters to the end of the command outlined in the step above
+6. Run 
+   ```ps
+     docker run --name gdqreminder-backend -d --restart unless-stopped -v $(pwd):/firebase --env-file ./.env ghcr.io/vimaster/gdqreminder-backend:main --refreshIntervalInMS=60000
+   ```
+8. Optionally, the app supports logging to a [Seq](https://datalust.co/seq) instance. To enable it, add the following parameters to the end of the command outlined in the step above
    1. `--seqHost=` and append the full path to your HTTP ingest host (for example: `https://example.org:5341`)
    2. `--seqAPIKey=` and append [an API key](https://docs.datalust.co/docs/api-keys#creating-an-api-key)
 
