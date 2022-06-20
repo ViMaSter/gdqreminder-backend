@@ -16,7 +16,7 @@ const parsedArgs = Object.fromEntries(process.argv
 
 const setupLogger = (config) =>
 {
-  const {seqHost, seqToken} = config;
+  const {seqHost, seqAPIKey} = config;
   let transports = [new winston.transports.Console({
     format: winston.format.simple(),
   })];
@@ -34,11 +34,11 @@ const setupLogger = (config) =>
     handleRejections: true,
   });
   
-  if (seqHost && seqToken)
+  if (seqHost && seqAPIKey)
   {
     logger.add(new SeqTransport({
       serverUrl: seqHost,
-      apiKey: seqToken,
+      apiKey: seqAPIKey,
       level: "info",
       handleExceptions: true,
       handleRejections: true,
