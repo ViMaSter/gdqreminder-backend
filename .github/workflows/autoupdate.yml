@@ -1,7 +1,7 @@
 name: Merge `autoupdate` branches
 on:
   workflow_run:
-    workflows: ["Running Code Coverage"]
+    workflows: ["Build + Test"]
     types: 
       - completed
 
