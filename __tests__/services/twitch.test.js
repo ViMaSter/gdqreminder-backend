@@ -1,5 +1,5 @@
-import { Twitch } from '../../../services/twitch.js';
-import { FakeHTTPClient } from "../../stubs/fakeHTTPClient";
+import { Twitch } from '../../services/twitch.js';
+import { FakeHTTPClient } from "../stubs/fakeHTTPClient";
 
 describe("twitch", () => {
     const twitch = new Twitch(new FakeHTTPClient("during-pumpkin_jack"), "");
@@ -19,8 +19,16 @@ describe("twitch", () => {
         const offline = new Twitch(new FakeHTTPClient("twitch-offline"), "");
         expect(await offline.isSubstringOfGameNameOrStreamTitle("Pumpkin Jack")).toBeFalsy();
     })
-    it("returns false, if no broadcast info", async () => {
-        const offline = new Twitch(new FakeHTTPClient("twitch-missing-broadcast"), "");
+    it("returns false, if no stream info", async () => {
+        const offline = new Twitch(new FakeHTTPClient("twitch-missing-stream"), "");
+        expect(await offline.isSubstringOfGameNameOrStreamTitle("Pumpkin Jack")).toBeFalsy();
+    })
+    it("returns false, if no game info", async () => {
+        const offline = new Twitch(new FakeHTTPClient("twitch-missing-game"), "");
+        expect(await offline.isSubstringOfGameNameOrStreamTitle("Pumpkin Jack")).toBeFalsy();
+    })
+    it("returns false, if empty game info", async () => {
+        const offline = new Twitch(new FakeHTTPClient("twitch-empty-game"), "");
         expect(await offline.isSubstringOfGameNameOrStreamTitle("Pumpkin Jack")).toBeFalsy();
     })
 })

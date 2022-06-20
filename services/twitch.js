@@ -33,7 +33,7 @@ export class Twitch {
         if (streamName.includes(substring.toLowerCase())) {
             return true;
         }
-        if (response[0].data.user.stream)
+        if (response[0].data.user.stream?.game?.name)
         {
             const gameName = response[0].data.user.stream.game.name.toLowerCase();
             if (gameName.includes(substring.toLowerCase())) {
