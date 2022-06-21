@@ -39,7 +39,7 @@ export class Twitch {
                 methods: ["POST"]
             }
         }).json();
-        this.#logger?.info("[TWITCH] requestTime: " + ((new Date().getTime() - twitchTime) / 1000));
+        this.#logger?.info("[TWITCH] requestTime: {time}", {time: ((new Date().getTime() - twitchTime) / 1000)});
         const streamName = response[0].data.user.broadcastSettings.title.toLowerCase();
         if (streamName.includes(substring.toLowerCase())) {
             return true;
