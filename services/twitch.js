@@ -1,9 +1,11 @@
 export class Twitch {
     #httpClient = null;
     #clientID = "";
-    constructor(httpClient, clientID) {
+    #logger = null;
+    constructor(httpClient, clientID, logger) {
         this.#httpClient = httpClient;
         this.#clientID = clientID;
+        this.#logger = logger;
     }
     // get current title or game name via gql api with got and TWITCH_CLIENT_ID env
     async isSubstringOfGameNameOrStreamTitle(substring) {
@@ -37,7 +39,7 @@ export class Twitch {
                 methods: ["POST"]
             }
         }).json();
-        console.log("[TWITCH] requestTime: " + ((new Date().getTime() - twitchTime) / 1000));
+        this.#logger?.info("[TWITCH] requestTime: " + ((new Date().getTime() - twitchTime) / 1000));
         const streamName = response[0].data.user.broadcastSettings.title.toLowerCase();
         if (streamName.includes(substring.toLowerCase())) {
             return true;

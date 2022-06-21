@@ -71,7 +71,7 @@ const startup = async (logger, config) => {
   }
 
   const firebase = new Firebase(logger);
-  const dataContainer = new DataContainer(logger, got, timeProvider, new Twitch(got, process.env.TWITCH_CLIENT_ID), (run, reason) => {
+  const dataContainer = new DataContainer(logger, got, timeProvider, new Twitch(got, process.env.TWITCH_CLIENT_ID, logger), (run, reason) => {
     logger.info("[EMISSION] run start: " + run.pk);
     firebase.sendStartMessageForRun(run, reason);
   });
