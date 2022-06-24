@@ -28,7 +28,7 @@
     "got": "^12.1.0",
     "jest": "^28.1.1",
     "moment": "^2.29.3",
-    "winston": "^3.7.2"
+    "winston": "^3.8.0"
   },
   "devDependencies": {
     "babel-jest": "^28.1.1"
