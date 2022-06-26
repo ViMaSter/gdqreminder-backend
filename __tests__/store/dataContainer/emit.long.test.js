@@ -33,7 +33,6 @@ describe("dataContainer", () => {
                         timeProvider.passTime(60 * 1000);
                         await dataContainer.checkFor10MinuteWarning();
                         await dataContainer.checkTwitch();
-                        await dataContainer.previousRunHasUpdatedEndTime();
                     }
                     expect(emissionMethod.mock.calls.length).toBe(event.runsInOrder.length);
                     const pumpkinJackRunIndex = emissionMethod.mock.calls.findIndex(call => call[0].display_name.includes("Pumpkin Jack"));
@@ -43,7 +42,7 @@ describe("dataContainer", () => {
                         emissionMethod.mock.calls.splice(pumpkinJackRunIndex, 1);
                     }
                     emissionMethod.mock.calls.forEach(call => {
-                        expect(call[1]).toBe(DataContainer.EmitReasons.TenMinutesUntilStart);
+                        expect(call[1]).toBe(DataContainer.EmitReasons.StartInLessThanTenMinutes);
                     });
                     emissionMethod.mock.calls = [];
                 }

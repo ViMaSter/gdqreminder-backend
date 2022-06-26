@@ -40,7 +40,7 @@ describe("dataContainer", () => {
                 {
                     expect(emissionMethod.mock.calls.length).toBe(previousCallCount+1);
                     expect(emissionMethod.mock.calls[previousCallCount][0].pk).toBe(5083);
-                    expect(emissionMethod.mock.calls[previousCallCount][1]).toBe(DataContainer.EmitReasons.TenMinutesUntilStart);
+                    expect(emissionMethod.mock.calls[previousCallCount][1]).toBe(DataContainer.EmitReasons.StartInLessThanTenMinutes);
                 }
             },
             "if the game on twitch matches the name of the next run": async (dataContainer, timeProvider, fakeHTTPClient, emissionMethod, skipValidation = false) => {
@@ -77,18 +77,16 @@ describe("dataContainer", () => {
             "if the previous run has a changed end time": async (dataContainer, timeProvider, fakeHTTPClient, emissionMethod, skipValidation = false) => {
                 const previousCallCount = emissionMethod.mock.calls.length;
                 const pumpkinJackStart = moment("2022-01-11T04:28:00Z");
-                timeProvider.setTime(new Date(pumpkinJackStart.clone().subtract(10, "minutes").toISOString()).getTime());
+                timeProvider.setTime(new Date(pumpkinJackStart.clone().subtract(15, "minutes").toISOString()).getTime());
                 
-                await dataContainer.previousRunHasUpdatedEndTime();
-                await dataContainer.previousRunHasUpdatedEndTime();
+                await dataContainer.checkFor10MinuteWarning();
                 fakeHTTPClient.setPrefix("run-before-pumpkin_jack-ended-20-minutes-earlier");
-                await dataContainer.previousRunHasUpdatedEndTime();
-                await dataContainer.previousRunHasUpdatedEndTime();
+                await dataContainer.checkFor10MinuteWarning();
                 if (!skipValidation)
                 {
                     expect(emissionMethod.mock.calls.length).toBe(previousCallCount+1);
                     expect(emissionMethod.mock.calls[previousCallCount][0].pk).toBe(5083);
-                    expect(emissionMethod.mock.calls[previousCallCount][1]).toBe(DataContainer.EmitReasons.StartIsInThePast);
+                    expect(emissionMethod.mock.calls[previousCallCount][1]).toBe(DataContainer.EmitReasons.StartInLessThanTenMinutes);
                 }
             }
         };
@@ -150,21 +148,18 @@ describe("dataContainer", () => {
                 const dataContainer = new DataContainer(undefined, fakeHTTPClient, twentyMinutesBeforeAGDQ, new Twitch(fakeHTTPClient), emissionMethod);
                 await dataContainer.checkFor10MinuteWarning();
                 await dataContainer.checkTwitch();
-                await dataContainer.previousRunHasUpdatedEndTime();
     
                 expect(emissionMethod.mock.calls.length).toBe(0);
                 twentyMinutesBeforeAGDQ.setTime(new Date(timeB))
                 await dataContainer.checkFor10MinuteWarning();
                 await dataContainer.checkTwitch();
-                await dataContainer.previousRunHasUpdatedEndTime();
     
                 expect(emissionMethod.mock.calls.length).toBe(1);
-                expect(emissionMethod.mock.calls[0][1]).toBe(DataContainer.EmitReasons.TenMinutesUntilStart);
+                expect(emissionMethod.mock.calls[0][1]).toBe(DataContainer.EmitReasons.StartInLessThanTenMinutes);
     
                 fakeHTTPClient.setPrefix(httpB);
                 await dataContainer.checkFor10MinuteWarning();
                 await dataContainer.checkTwitch();
-                await dataContainer.previousRunHasUpdatedEndTime();
     
                 expect(emissionMethod.mock.calls.length).toBe(2);
                 expect(emissionMethod.mock.calls[1][1]).toBe(DataContainer.EmitReasons.TwitchDataMatch);

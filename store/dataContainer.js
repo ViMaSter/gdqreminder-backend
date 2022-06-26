@@ -3,9 +3,8 @@ import moment from 'moment';
 export class DataContainer
 {
   static EmitReasons = Object.freeze({
-    TenMinutesUntilStart: "0",
-    TwitchDataMatch: "1",
-    StartIsInThePast: "2"
+    StartInLessThanTenMinutes: "0",
+    TwitchDataMatch: "1"
   });
 
   #data = {
@@ -247,7 +246,7 @@ export class DataContainer
 
   #dataAtLastCheck = {
     timestamp: -1,
-    currentlyTrackedRun: null,
+    currentlyTrackedRunPK: null,
     notifiedRuns: []
   };
 
@@ -258,11 +257,12 @@ export class DataContainer
 
     this.#dataAtLastCheck.timestamp = now.getTime();
 
-    if (this.#dataAtLastCheck.currentlyTrackedRun)
+    if (this.#dataAtLastCheck.currentlyTrackedRunPK)
     {
-      if (!this.#dataAtLastCheck.notifiedRuns.includes(this.#dataAtLastCheck.currentlyTrackedRun.pk))
+      await this.getEvent(this.#data.runsWithPK[this.#dataAtLastCheck.currentlyTrackedRunPK].event);
+      if (!this.#dataAtLastCheck.notifiedRuns.includes(this.#dataAtLastCheck.currentlyTrackedRunPK))
       {
-        return this.#dataAtLastCheck.currentlyTrackedRun;
+        return this.#data.runsWithPK[this.#dataAtLastCheck.currentlyTrackedRunPK];
       }
     }
 
@@ -272,43 +272,43 @@ export class DataContainer
       return;
     }
 
-    let nextRun = this.#dataAtLastCheck.currentlyTrackedRun;
+    let nextRunPK = this.#dataAtLastCheck.currentlyTrackedRunPK;
     do {
-      if (!this.#dataAtLastCheck.currentlyTrackedRun)
+      if (!this.#dataAtLastCheck.currentlyTrackedRunPK)
       {
-        nextRun = await this.getNextRun();
-        if (!nextRun)
+        nextRunPK = (await this.getNextRun())?.pk;
+        if (!nextRunPK)
         {
           return null;
         }
         break;
       }
       const relevantEvent = await this.getRelevantEvent();
-      if (relevantEvent.short != nextRun.event)
+      let nextRunEvent = this.#data.runsWithPK[nextRunPK].event;
+      if (relevantEvent.short != nextRunEvent)
       {
-        nextRun = relevantEvent.runsInOrder.at(0);
+        nextRunPK = relevantEvent.runsInOrder.at(0).pk;
         break;
       }
-      const eventOfLastTrackedRun = this.#data.events[this.#data.eventShortToPK[nextRun.event]];
-      const nextRunIndex = eventOfLastTrackedRun.runsInOrder.findIndex(run => run.pk == nextRun.pk)+1;
-      nextRun = eventOfLastTrackedRun.runsInOrder[nextRunIndex]
-      if (!nextRun)
+      const eventOfLastTrackedRun = this.#data.events[this.#data.eventShortToPK[nextRunEvent]];
+      const nextRunIndex = eventOfLastTrackedRun.runsInOrder.findIndex(run => run.pk == nextRunPK)+1;
+      nextRunPK = eventOfLastTrackedRun.runsInOrder[nextRunIndex]?.pk
+      if (!nextRunPK)
       {
         return;
       }
   
-      if (!this.#dataAtLastCheck.notifiedRuns.includes(nextRun.pk))
+      if (!this.#dataAtLastCheck.notifiedRuns.includes(nextRunPK))
       {
         break;
       }
-      this.#logger.warn(`next run we should be tracking is ${nextRun.pk}, but already informed about it, moving to the next`)
+      this.#logger.warn(`next run we should be tracking is ${nextRunPK}, but already informed about it, moving to the next`)
       continue;
-    } while(nextRun);
+    } while(nextRunPK);
 
-    this.#logger.info(`[MONITOR] run pk: ${nextRun.pk} (${nextRun.display_name})`);
-    this.#dataAtLastCheck.endTimeOfPreviousRun = this.#dataAtLastCheck.currentlyTrackedRun?.endTime;
-    this.#dataAtLastCheck.currentlyTrackedRun = nextRun;
-    return nextRun;
+    this.#logger.info(`[MONITOR] run pk: ${nextRunPK} (${this.#data.runsWithPK[nextRunPK].display_name})`);
+    this.#dataAtLastCheck.currentlyTrackedRunPK = nextRunPK;
+    return this.#data.runsWithPK[nextRunPK];
   }
 
   async checkTwitch()
@@ -358,36 +358,7 @@ export class DataContainer
     }
 
     this.#dataAtLastCheck.notifiedRuns.push(monitoredRun.pk);
-    this.#emitEvent(monitoredRun, DataContainer.EmitReasons.TenMinutesUntilStart);
-  }
-  async previousRunHasUpdatedEndTime()
-  {
-    const monitoredRun = await this.getRunToMonitor();
-    if (!monitoredRun)
-    {
-      return;
-    }
-
-    await this.getEvent(monitoredRun.event); // refresh event data
-    const previousRunIndex = this.#data.events[this.#data.eventShortToPK[monitoredRun.event]].runsInOrder.findIndex(run => run.pk == monitoredRun.pk) - 1;
-    if (previousRunIndex < 0)	
-    {
-      return;
-    }
-
-    const previousRun = this.#data.events[this.#data.eventShortToPK[monitoredRun.event]].runsInOrder[previousRunIndex];
-    if (!this.#dataAtLastCheck.endTimeOfPreviousRun)
-    {
-      this.#dataAtLastCheck.endTimeOfPreviousRun = previousRun.endTime;
-      return;
-    }
-    if (this.#dataAtLastCheck.endTimeOfPreviousRun.getTime() == previousRun.endTime.getTime())
-    {
-      return;
-    }
-
-    this.#dataAtLastCheck.notifiedRuns.push(monitoredRun.pk);
-    this.#emitEvent(monitoredRun, DataContainer.EmitReasons.StartIsInThePast);
+    this.#emitEvent(monitoredRun, DataContainer.EmitReasons.StartInLessThanTenMinutes);
   }
 
   #continueLoop = false;
@@ -400,7 +371,6 @@ export class DataContainer
         beforeNextCheck?.(startAt);
         await this.checkFor10MinuteWarning();
         await this.checkTwitch();
-        await this.previousRunHasUpdatedEndTime();
         this.#logger.info("[LOOP] duration: " + moment.utc(moment(this.#timeProvider.getCurrent()).diff(startAt)).format("HH:mm:ss.SSS"));
         await new Promise((resolve) => {
           setTimeout(resolve, refreshIntervalInMS)

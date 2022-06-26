@@ -33,7 +33,7 @@ describe("integration", () => {
         const validations = {
             "2022-01-09T16:20:00.000Z": () => {
                 expect(emissionMethod.mock.calls[0][0].pk).toBe(5049);
-                expect(emissionMethod.mock.calls[0][1]).toBe(DataContainer.EmitReasons.TenMinutesUntilStart);
+                expect(emissionMethod.mock.calls[0][1]).toBe(DataContainer.EmitReasons.StartInLessThanTenMinutes);
             },
             "2022-01-09T16:35:00.000Z": () => {
                 expect(emissionMethod.mock.calls[1][0].pk).toBe(5050);
@@ -41,11 +41,11 @@ describe("integration", () => {
             },
             "2022-01-09T18:45:00.000Z": () => {
                 expect(emissionMethod.mock.calls[2][0].pk).toBe(5051);
-                expect(emissionMethod.mock.calls[2][1]).toBe(DataContainer.EmitReasons.TenMinutesUntilStart);
+                expect(emissionMethod.mock.calls[2][1]).toBe(DataContainer.EmitReasons.StartInLessThanTenMinutes);
             },
             "2022-01-09T19:00:00.000Z": () => {
                 expect(emissionMethod.mock.calls[3][0].pk).toBe(5052);
-                expect(emissionMethod.mock.calls[3][1]).toBe(DataContainer.EmitReasons.StartIsInThePast);
+                expect(emissionMethod.mock.calls[3][1]).toBe(DataContainer.EmitReasons.StartInLessThanTenMinutes);
             },
             "2022-01-09T19:30:00Z": () => {
                 resolve(); // end test
