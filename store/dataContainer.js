@@ -15,7 +15,19 @@ export class DataContainer
     "runsWithPK": {},
   };
 
-  #logger = null;
+  #logger = {
+    error: ()=>{},
+    warn: ()=>{},
+    help: ()=>{},
+    data: ()=>{},
+    info: ()=>{},
+    debug: ()=>{},
+    prompt: ()=>{},
+    http: ()=>{},
+    verbose: ()=>{},
+    input: ()=>{},
+    silly: ()=>{},
+  };
   #gotClient = null;
   #timeProvider = null;
   #emitEvent = null;
@@ -23,7 +35,10 @@ export class DataContainer
 
   constructor(logger, gotClient, timeProvider, twitch, emitEvent)
   {
-    this.#logger = logger;
+    if (logger)
+    {
+      this.#logger = logger;
+    }
     this.#gotClient = gotClient;
     this.#timeProvider = timeProvider;
     this.#emitEvent = emitEvent;
@@ -300,6 +315,11 @@ export class DataContainer
   {
     const monitoredRun = await this.getRunToMonitor();
     if (!monitoredRun)
+    {
+      return;
+    }
+
+    if (monitoredRun.pk == this.#data.events[this.#data.eventShortToPK[monitoredRun.event]].runsInOrder[0].pk)
     {
       return;
     }
