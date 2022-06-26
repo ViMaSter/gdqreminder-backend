@@ -305,7 +305,7 @@ export class DataContainer
       continue;
     } while(nextRun);
 
-    this.#logger.info(`[MONITOR] run pk: ${nextRun.pk}`);
+    this.#logger.info(`[MONITOR] run pk: ${nextRun.pk} (${nextRun.display_name})`);
     this.#dataAtLastCheck.endTimeOfPreviousRun = this.#dataAtLastCheck.currentlyTrackedRun?.endTime;
     this.#dataAtLastCheck.currentlyTrackedRun = nextRun;
     return nextRun;

@@ -17,10 +17,9 @@ export default class Firebase {
         sendStartMessageForRun(topic);
     }
     sendStartMessageForRun(run, reason) {
-        
         const topic = `run.start.${run.pk}`;
 
-        const message = {
+        const firebaseMessage = {
             notification: {
                 title: `GDQ Reminder: ${run.display_name}`,
                 body: "Tappen und direkt zu Twitch!"
@@ -36,12 +35,15 @@ export default class Firebase {
             topic: topic
         };
 
-        getMessaging().send(message)
+        let logData = {firebaseMessage, pk: run.pk, display_name: run.display_name, reason};
+
+        this.#logger.info("[FIREBASE] Sending message for run {pk} ({display_name})... (Reason: {reason})", logData);
+        getMessaging().send(firebaseMessage)
             .then((response) => {
-                this.#logger.info('Successfully sent message: ' + response);
+                this.#logger.info("[FIREBASE] Successfully sent message for run {pk} ({display_name}): {response} (Reason: {reason})", {...logData, response});
             })
             .catch((error) => {
-                this.#logger.info('Error sending message: ' + error);
+                this.#logger.info("[FIREBASE] Error sending message for run {pk} ({display_name}): {error} (Error: {error})", {...logData, error});
             });
     }
 }

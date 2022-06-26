@@ -19,8 +19,8 @@
         },
         {
             "type": "node",
-            "name": "Jest: All",
             "request": "launch",
+            "name": "Jest: All",
             "args": [
                 "--experimental-vm-modules",
                 "${workspaceFolder}/node_modules/.bin/jest",
@@ -34,7 +34,8 @@
         {
             "type": "pwa-node",
             "request": "launch",
-            "name": "Launch real time",
+            "name": "Launch real time (60s)",
+            "outputCapture": "std",
             "skipFiles": [
                 "<node_internals>/**"
             ],
