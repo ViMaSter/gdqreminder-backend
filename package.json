@@ -31,6 +31,6 @@
     "winston": "^3.8.1"
   },
   "devDependencies": {
-    "babel-jest": "^29.0.1"
+    "babel-jest": "^29.0.2"
   }
 }
