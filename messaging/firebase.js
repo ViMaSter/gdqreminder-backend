@@ -26,7 +26,8 @@ export default class Firebase {
             },
             android: {
                 notification: {
-                    color: "#00aeef"
+                    color: "#00aeef",
+                    icon: 'notification'
                 }
             },
             data: {
