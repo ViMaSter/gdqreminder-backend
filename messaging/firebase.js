@@ -22,7 +22,7 @@ export default class Firebase {
         const firebaseMessage = {
             notification: {
                 title: `GDQ Reminder: ${run.display_name}`,
-                body: "Tappen und direkt zu Twitch!"
+                body: "Live now! Tap and head to Twitch!"
             },
             android: {
                 notification: {
