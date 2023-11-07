@@ -67,7 +67,7 @@ describe("dataContainer", () => {
                     const relativeTimeCapitalized = relativeTime.charAt(0).toUpperCase() + relativeTime.slice(1);
                     const lowercaseShort = result?.toLowerCase();
 
-                    test(`${relativeTimeCapitalized} run is ${lowercaseShort}`, async () => {
+                    test(`${relativeTimeCapitalized} event is ${lowercaseShort}`, async () => {
                         if (lowercaseShort == null)
                         {
                             expect(await dataContainer[`get${relativeTimeCapitalized}Event`]()).toBeNull();

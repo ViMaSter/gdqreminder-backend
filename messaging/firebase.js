@@ -47,4 +47,35 @@ export default class Firebase {
                 this.#logger.info("[FIREBASE] Error sending message for run {pk} ({display_name}): {error} (Error: {error})", {...logData, error});
             });
     }
+    sendStartMessageForNewSchedule(event, reason) {
+        const topic = `event.schedule`;
+
+        const firebaseMessage = {
+            notification: {
+                title: `GDQ Reminder: ${event.fields.short} announced!`,
+                body: "Tap to set your reminders!"
+            },
+            android: {
+                notification: {
+                    color: "#00aeef",
+                    icon: 'notification'
+                }
+            },
+            data: {
+                event: topic
+            },
+            topic: topic
+        };
+
+        let logData = {firebaseMessage, event, reason};
+
+        this.#logger.info("[FIREBASE] Sending message for event {event.fields.short}", logData);
+        getMessaging().send(firebaseMessage)
+            .then((response) => {
+                this.#logger.info("[FIREBASE] Successfully sent message for event {event.fields.short} (Response: {response})", {...logData, response});
+            })
+            .catch((error) => {
+                this.#logger.info("[FIREBASE] Error sending message for event {event.fields.short} (Error: {error})", {...logData, error});
+            });
+    }
 }

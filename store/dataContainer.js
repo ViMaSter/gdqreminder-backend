@@ -29,10 +29,11 @@ export class DataContainer
   };
   #gotClient = null;
   #timeProvider = null;
-  #emitEvent = null;
+  #onNextRunStarted = null;
+  #onNextScheduleReleased = null;
   #twitch = null;
 
-  constructor(logger, gotClient, timeProvider, twitch, emitEvent)
+  constructor(logger, gotClient, timeProvider, twitch, onNextRunStarted, onNextScheduleReleased)
   {
     if (logger)
     {
@@ -40,7 +41,8 @@ export class DataContainer
     }
     this.#gotClient = gotClient;
     this.#timeProvider = timeProvider;
-    this.#emitEvent = emitEvent;
+    this.#onNextRunStarted = onNextRunStarted;
+    this.#onNextScheduleReleased = onNextScheduleReleased;
     this.#twitch = twitch;
   }
 
@@ -66,6 +68,7 @@ export class DataContainer
   async getEvent(eventShort)
   {
     const runs = await this.#gotClient.get(`https://gamesdonequick.com/tracker/api/v1/search/?type=run&eventshort=${eventShort}`).json();
+
     const runsWithPKById = Object.fromEntries(runs.map(entry => {
       entry.fields.pk = entry.pk;
 
@@ -90,6 +93,11 @@ export class DataContainer
     const eventPK = this.#data.eventShortToPK[eventShort];
 
     const eventIndex = this.#data.eventOrder.findIndex(event=>event.short === eventShort);
+
+    if (this.#data.events[eventPK] && this.#data.events[eventPK].runsInOrder && this.#data.events[eventPK].runsInOrder.length == 0 && runsInOrder.length > 0)
+    {
+      this.#onNextScheduleReleased(this.#data.events[eventPK]);
+    }
 
     this.#data.events[eventPK].runsInOrder = runsInOrder;
     this.#data.eventOrder[eventIndex].runsInOrder = runsInOrder;
@@ -329,7 +337,7 @@ export class DataContainer
       if (await this.#twitch.isSubstringOfGameNameOrStreamTitle(monitoredRun.twitch_name))
       {
         this.#dataAtLastCheck.notifiedRuns.push(monitoredRun.pk);
-        this.#emitEvent(monitoredRun, DataContainer.EmitReasons.TwitchDataMatch);
+        this.#onNextRunStarted(monitoredRun, DataContainer.EmitReasons.TwitchDataMatch);
         return;
       }
     }
@@ -339,7 +347,7 @@ export class DataContainer
       if (await this.#twitch.isSubstringOfGameNameOrStreamTitle(monitoredRun.display_name))
       {
         this.#dataAtLastCheck.notifiedRuns.push(monitoredRun.pk);
-        this.#emitEvent(monitoredRun, DataContainer.EmitReasons.TwitchDataMatch);
+        this.#onNextRunStarted(monitoredRun, DataContainer.EmitReasons.TwitchDataMatch);
         return;
       }
     }
@@ -358,7 +366,16 @@ export class DataContainer
     }
 
     this.#dataAtLastCheck.notifiedRuns.push(monitoredRun.pk);
-    this.#emitEvent(monitoredRun, DataContainer.EmitReasons.StartInLessThanTenMinutes);
+    this.#onNextRunStarted(monitoredRun, DataContainer.EmitReasons.StartInLessThanTenMinutes);
+  }
+
+  async checkForRunsInNextEvent()
+  {
+    const nextEvent = await this.getNextEvent();
+    if (!nextEvent)
+    {
+      return;
+    }
   }
 
   #continueLoop = false;
@@ -371,6 +388,7 @@ export class DataContainer
         beforeNextCheck?.(startAt);
         await this.checkFor10MinuteWarning();
         await this.checkTwitch();
+        await this.checkForRunsInNextEvent();
         this.#logger.info("[LOOP] duration: " + moment.utc(moment(this.#timeProvider.getCurrent()).diff(startAt)).format("HH:mm:ss.SSS"));
         await new Promise((resolve) => {
           setTimeout(resolve, refreshIntervalInMS)
