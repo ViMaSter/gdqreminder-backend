@@ -62,7 +62,8 @@ export default class Firebase {
                 }
             },
             data: {
-                event: topic
+                event: topic,
+                short: event.fields.short
             },
             topic: topic
         };
