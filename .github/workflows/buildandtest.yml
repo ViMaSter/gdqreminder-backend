@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: [16, latest]
+        node: [lts, latest]
 
     steps:
     - name: Checkout repository
