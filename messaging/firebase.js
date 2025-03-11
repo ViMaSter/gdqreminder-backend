@@ -8,17 +8,11 @@ export default class Firebase {
     }
     sentTestMessage() {
         const vincent = '3961'; // agdq2020 -> A Hat In Time
-        const daniel = '5276'; // ???
-        const kenzaki = '997' // sgdq2011 -> darkwing duck
-        const both = '5273'; // sgdq2022 -> preshow
-        // The topic name can be optionally prefixed with "/topics/".
         const topic = vincent;
 
         sendStartMessageForRun(topic);
     }
     sendStartMessageForRun(run, reason) {
-        debugger;
-        return;
         const topic = `run.start.${run.id}`;
 
         const firebaseMessage = {
@@ -50,8 +44,6 @@ export default class Firebase {
             });
     }
     sendStartMessageForNewSchedule(event, reason) {
-        debugger;
-        return;
         const topic = `event.schedule`;
 
         const firebaseMessage = {
