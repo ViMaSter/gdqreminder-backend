@@ -74,18 +74,18 @@ describe("dataContainer", () => {
                     // capitalize first letter of relativeTime
                     const relativeTimeCapitalized = relativeTime.charAt(0).toUpperCase() + relativeTime.slice(1);
                     const name = dataPair ? dataPair[0] : null;
-                    const pk = dataPair ? dataPair[1] : null;
+                    const id = dataPair ? dataPair[1] : null;
 
                     test(`${relativeTimeCapitalized} run is ${name}`, async () => {
                         const relevantRun = await dataContainer[`get${relativeTimeCapitalized}Run`]();
-                        if (pk == null)
+                        if (id == null)
                         {
                             expect(relevantRun).toBeNull();
                             return;
                         }
 
                         
-                        expect(relevantRun.id).toBe(pk)
+                        expect(relevantRun.id).toBe(id)
                     })
                 });
             })
