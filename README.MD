@@ -4,7 +4,7 @@
 1. Create a new folder (this README will refer to this folder as `$ROOT`)
 2. Visit `Settings` -> [`Service Accounts`](https://console.firebase.google.com/project/_/settings/serviceaccounts/adminsdk) of your firebase project
 3. `Generate New Private key`, download and store this file at `$ROOT/firebase.json`
-4. Create a `$ROOT/.env` file with the following contents
+4. Create a `$ROOT/.env` file with the following content
    ```
      TWITCH_CLIENT_ID=[YOUR_GRAPHQL_TWITCH_CLIENT_ID]
    ```
@@ -18,7 +18,7 @@
    2. `--seqAPIKey=` and append [an API key](https://docs.datalust.co/docs/api-keys#creating-an-api-key)
 
 ## Setup
-1. Run `npm i`
+1. Run `nvm install && nvm use && npm i`
 2. Visit `Settings` -> [`Service Accounts`](https://console.firebase.google.com/project/_/settings/serviceaccounts/adminsdk) of your firebase project
 3. `Generate New Private` key and store this place anywhere on your machine
 4. Create a `.env`-file with the following content

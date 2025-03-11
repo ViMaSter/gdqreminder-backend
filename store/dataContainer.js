@@ -8,10 +8,9 @@ export class DataContainer
   });
 
   #data = {
-    "eventShortToPK": {},
     "eventOrder": [],
     "events": {},
-    "runsWithPK": {},
+    "runsWithEventID": {},
   };
 
   #logger = {
@@ -48,55 +47,46 @@ export class DataContainer
 
   async getAllEvents() 
   {
-    let events = (await this.#gotClient.get("https://gamesdonequick.com/tracker/api/v1/search/?type=event").json()).filter(e=>e.fields.short.toLowerCase().includes("gdq"));
+    let events = (await this.#gotClient.get("https://tracker.gamesdonequick.com/tracker/api/v2/events").json()).results.filter(e=>e.short.toLowerCase().includes("gdq"));
+    debugger;
     events = events.map(event => {
-      event.fields.short = event.fields.short.toLowerCase();
-      event.fields.startTime = new Date(event.fields.datetime);
-      event.fields.pk = event.pk;
-      delete event.fields.datetime;
+      event.short = event.short.toLowerCase();
+      event.startTime = new Date(event.datetime);
+      delete event.datetime;
       return event;
     })
-    const eventsById = Object.fromEntries(events.map(entry => [entry.pk, entry.fields]));
+    const eventsById = Object.fromEntries(events.map(entry => [entry.id, entry]));
     this.#data.events = {...this.#data.events, ...eventsById};
     
-    const eventShortToPK = Object.fromEntries(events.map(entry => [entry.fields.short, entry.pk]));
-    this.#data.eventShortToPK = {...this.#data.eventShortToPK, ...eventShortToPK};
-
-    const eventsInOrder = events.sort((a,b)=>new Date(a.fields.startTime) - new Date(b.fields.startTime)).map(event=>event.fields);
+    const eventsInOrder = events.sort((a,b)=>new Date(a.startTime) - new Date(b.startTime));
     this.#data.eventOrder = eventsInOrder;
   }
-  async getEvent(eventShort)
+  async getEvent(eventID)
   {
-    const runs = await this.#gotClient.get(`https://gamesdonequick.com/tracker/api/v1/search/?type=run&eventshort=${eventShort}`).json();
+    const runs = await this.#gotClient.get(`https://tracker.gamesdonequick.com/tracker/api/v2/events/${eventID}/runs/`).json();
 
-    const runsWithPKById = Object.fromEntries(runs.map(entry => {
-      entry.fields.pk = entry.pk;
+    const runsWithEventIDById = Object.fromEntries(runs.map(entry => {
+      entry.startTime = new Date(entry.starttime);
+      delete entry.starttime;
 
-      entry.fields.startTime = new Date(entry.fields.starttime);
-      delete entry.fields.starttime;
+      entry.endTime = new Date(entry.endtime);
+      delete entry.endtime;
 
-      entry.fields.endTime = new Date(entry.fields.endtime);
-      delete entry.fields.endtime;
+      entry.eventID = eventID;
 
-      entry.fields.event = eventShort;
-
-      return [entry.pk, entry.fields];
+      return [entry.id, entry];
     }));
-    this.#data.runsWithPK = {...this.#data.runsWithPK, ...runsWithPKById};
+    this.#data.runsWithEventID = {...this.#data.runsWithEventID, ...runsWithEventIDById};
 
-    const runsInOrder = Object.values(runsWithPKById).sort((a,b)=>new Date(a.startTime) - new Date(b.startTime));
-    if (!this.#data.eventShortToPK.hasOwnProperty(eventShort))
+    const runsInOrder = Object.values(runsWithEventIDById).sort((a,b)=>new Date(a.startTime) - new Date(b.startTime));
+    if (this.#data.eventOrder.length <= 0)
     {
       await this.getAllEvents();
     }
 
-    const eventPK = this.#data.eventShortToPK[eventShort];
-
-    const eventIndex = this.#data.eventOrder.findIndex(event=>event.short === eventShort);
-
-    if (this.#data.events[eventPK] && this.#data.events[eventPK].runsInOrder && this.#data.events[eventPK].runsInOrder.length == 0 && runsInOrder.length > 0)
+    if (this.#data.events[eventID] && this.#data.events[eventID].runsInOrder && this.#data.events[eventID].runsInOrder.length == 0 && runsInOrder.length > 0)
     {
-      this.#onNextScheduleReleased(this.#data.events[eventPK]);
+      this.#onNextScheduleReleased(this.#data.events[eventID]);
     }
 
     this.#data.events[eventPK].runsInOrder = runsInOrder;
@@ -106,8 +96,8 @@ export class DataContainer
 
     if (lastRunOfEvent)
     {
-      this.#data.events[eventPK].endTime = new Date(this.#data.runsWithPK[lastRunOfEvent.pk].endTime);
-      this.#data.eventOrder[eventIndex].endTime = new Date(this.#data.runsWithPK[lastRunOfEvent.pk].endTime);
+      this.#data.events[eventPK].endTime = new Date(this.#data.runsWithEventID[lastRunOfEvent.id].endTime);
+      this.#data.eventOrder[eventIndex].endTime = new Date(this.#data.runsWithEventID[lastRunOfEvent.id].endTime);
     }
 
     return this.#data.events[eventPK];
@@ -131,7 +121,7 @@ export class DataContainer
     {
       return null;
     }
-    return this.getEvent(lastEvent.short);
+    return this.getEvent(lastEvent.id);
   }
 
   async getCurrentEvent()
@@ -146,7 +136,7 @@ export class DataContainer
       return null;
     }
     const currentEvent = eventsStartedBeforeNow.at(-1);
-    const event = await this.getEvent(currentEvent.short);
+    const event = await this.getEvent(currentEvent.id);
     if (new Date(event.endTime) > this.#timeProvider.getCurrent())
     {
       return event;
@@ -189,7 +179,7 @@ export class DataContainer
     {
       return null;
     }
-    return this.getEvent(firstUpcomingEvent.short);
+    return this.getEvent(firstUpcomingEvent.id);
   }
 
   async getPreviousRun()
@@ -199,17 +189,17 @@ export class DataContainer
 
     if (currentRun != null)
     {
-      const previousRunIndex = this.#data.events[currentEvent.pk].runsInOrder.findIndex(run => run.pk == currentRun.pk) - 1;
+      const previousRunIndex = this.#data.events[currentEventid].runsInOrder.findIndex(run => run.id == currentRun.id) - 1;
       if (previousRunIndex < 0)
       {
         return null;
       }
-      return this.#data.events[currentEvent.pk].runsInOrder[previousRunIndex];
+      return this.#data.events[currentEvent.id].runsInOrder[previousRunIndex];
     }
 
     if (currentEvent.endTime <= this.#timeProvider.getCurrent())
     {
-      return this.#data.events[currentEvent.pk].runsInOrder.at(-1);
+      return this.#data.events[currentEvent.id].runsInOrder.at(-1);
     }
 
     return null;
@@ -223,7 +213,7 @@ export class DataContainer
       return null;
     }
 
-    const currentEventPK = currentEvent.pk;
+    const currentEventPK = currentEvent.id;
 
     const currentRun = this.#data.events[currentEventPK].runsInOrder.find(run => run.startTime <= this.#timeProvider.getCurrent() && this.#timeProvider.getCurrent() < run.endTime);
     return currentRun;
@@ -236,17 +226,17 @@ export class DataContainer
 
     if (currentRun != null)
     {
-      const nextRunIndex = this.#data.events[currentEvent.pk].runsInOrder.findIndex(run => run.pk == currentRun.pk) + 1;
-      if (nextRunIndex >= this.#data.events[currentEvent.pk].runsInOrder.length)
+      const nextRunIndex = this.#data.events[currentEvent.id].runsInOrder.findIndex(run => run.id == currentRun.id) + 1;
+      if (nextRunIndex >= this.#data.events[currentEvent.id].runsInOrder.length)
       {
         return null;
       }
-      return this.#data.events[currentEvent.pk].runsInOrder[nextRunIndex];
+      return this.#data.events[currentEvent.id].runsInOrder[nextRunIndex];
     }
 
     if (currentEvent.startTime > this.#timeProvider.getCurrent())
     {
-      return this.#data.events[currentEvent.pk].runsInOrder.at(0);
+      return this.#data.events[currentEvent.id].runsInOrder.at(0);
     }
 
     return null;
@@ -267,10 +257,10 @@ export class DataContainer
 
     if (this.#dataAtLastCheck.currentlyTrackedRunPK)
     {
-      await this.getEvent(this.#data.runsWithPK[this.#dataAtLastCheck.currentlyTrackedRunPK].event);
+      await this.getEvent(this.#data.runsWithEventID[this.#dataAtLastCheck.currentlyTrackedRunPK].eventID);
       if (!this.#dataAtLastCheck.notifiedRuns.includes(this.#dataAtLastCheck.currentlyTrackedRunPK))
       {
-        return this.#data.runsWithPK[this.#dataAtLastCheck.currentlyTrackedRunPK];
+        return this.#data.runsWithEventID[this.#dataAtLastCheck.currentlyTrackedRunPK];
       }
     }
 
@@ -284,7 +274,7 @@ export class DataContainer
     do {
       if (!this.#dataAtLastCheck.currentlyTrackedRunPK)
       {
-        nextRunPK = (await this.getNextRun())?.pk;
+        nextRunPK = (await this.getNextRun())?.id;
         if (!nextRunPK)
         {
           return null;
@@ -292,15 +282,15 @@ export class DataContainer
         break;
       }
       const relevantEvent = await this.getRelevantEvent();
-      let nextRunEvent = this.#data.runsWithPK[nextRunPK].event;
+      let nextRunEvent = this.#data.runsWithEventID[nextRunPK].eventID;
       if (relevantEvent.short != nextRunEvent)
       {
-        nextRunPK = relevantEvent.runsInOrder.at(0).pk;
+        nextRunPK = relevantEvent.runsInOrder.at(0).id;
         break;
       }
-      const eventOfLastTrackedRun = this.#data.events[this.#data.eventShortToPK[nextRunEvent]];
-      const nextRunIndex = eventOfLastTrackedRun.runsInOrder.findIndex(run => run.pk == nextRunPK)+1;
-      nextRunPK = eventOfLastTrackedRun.runsInOrder[nextRunIndex]?.pk
+      const eventOfLastTrackedRun = this.#data.events[nextRunEvent];
+      const nextRunIndex = eventOfLastTrackedRun.runsInOrder.findIndex(run => run.id == nextRunPK)+1;
+      nextRunPK = eventOfLastTrackedRun.runsInOrder[nextRunIndex]?.id
       if (!nextRunPK)
       {
         return;
@@ -314,9 +304,9 @@ export class DataContainer
       continue;
     } while(nextRunPK);
 
-    this.#logger.info(`[MONITOR] run pk: ${nextRunPK} (${this.#data.runsWithPK[nextRunPK].display_name})`);
+    this.#logger.info(`[MONITOR] run pk: ${nextRunPK} (${this.#data.runsWithEventID[nextRunPK].display_name})`);
     this.#dataAtLastCheck.currentlyTrackedRunPK = nextRunPK;
-    return this.#data.runsWithPK[nextRunPK];
+    return this.#data.runsWithEventID[nextRunPK];
   }
 
   async checkTwitch()
@@ -327,7 +317,7 @@ export class DataContainer
       return;
     }
 
-    if (monitoredRun.pk == this.#data.events[this.#data.eventShortToPK[monitoredRun.event]].runsInOrder[0].pk)
+    if (monitoredRun.id == this.#data.events[monitoredRun.eventID].runsInOrder[0].id)
     {
       return;
     }
@@ -336,7 +326,7 @@ export class DataContainer
     {
       if (await this.#twitch.isSubstringOfGameNameOrStreamTitle(monitoredRun.twitch_name))
       {
-        this.#dataAtLastCheck.notifiedRuns.push(monitoredRun.pk);
+        this.#dataAtLastCheck.notifiedRuns.push(monitoredRun.id);
         this.#onNextRunStarted(monitoredRun, DataContainer.EmitReasons.TwitchDataMatch);
         return;
       }
@@ -346,12 +336,13 @@ export class DataContainer
     {
       if (await this.#twitch.isSubstringOfGameNameOrStreamTitle(monitoredRun.display_name))
       {
-        this.#dataAtLastCheck.notifiedRuns.push(monitoredRun.pk);
+        this.#dataAtLastCheck.notifiedRuns.push(monitoredRun.id);
         this.#onNextRunStarted(monitoredRun, DataContainer.EmitReasons.TwitchDataMatch);
         return;
       }
     }
   }
+  
   async checkFor10MinuteWarning()
   {
     const monitoredRun = await this.getRunToMonitor();
@@ -365,7 +356,7 @@ export class DataContainer
       return;
     }
 
-    this.#dataAtLastCheck.notifiedRuns.push(monitoredRun.pk);
+    this.#dataAtLastCheck.notifiedRuns.push(monitoredRun.id);
     this.#onNextRunStarted(monitoredRun, DataContainer.EmitReasons.StartInLessThanTenMinutes);
   }
 

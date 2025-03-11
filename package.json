@@ -5,7 +5,7 @@
   "main": "main.js",
   "type": "module",
   "scripts": {
-    "server": "node main",
+    "server": "node main --refreshIntervalInMS=5000",
     "test": "node --experimental-vm-modules ./node_modules/.bin/jest"
   },
   "repository": {
