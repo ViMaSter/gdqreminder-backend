@@ -39,7 +39,7 @@ describe("dataContainer", () => {
                 if (!skipValidation)
                 {
                     expect(emissionMethod.mock.calls.length).toBe(previousCallCount+1);
-                    expect(emissionMethod.mock.calls[previousCallCount][0].pk).toBe(5083);
+                    expect(emissionMethod.mock.calls[previousCallCount][0].id).toBe(5083);
                     expect(emissionMethod.mock.calls[previousCallCount][1]).toBe(DataContainer.EmitReasons.StartInLessThanTenMinutes);
                 }
             },
@@ -54,7 +54,7 @@ describe("dataContainer", () => {
                 if (!skipValidation)
                 {
                     expect(emissionMethod.mock.calls.length).toBe(previousCallCount+1);
-                    expect(emissionMethod.mock.calls[previousCallCount][0].pk).toBe(5083);
+                    expect(emissionMethod.mock.calls[previousCallCount][0].id).toBe(5083);
                     expect(emissionMethod.mock.calls[previousCallCount][1]).toBe(DataContainer.EmitReasons.TwitchDataMatch);
                 }
                 timeProvider.setTime(new Date(finaleStart.clone().subtract(11, 'minutes').toISOString()).getTime());
@@ -62,7 +62,7 @@ describe("dataContainer", () => {
                 if (!skipValidation)
                 {
                     expect(emissionMethod.mock.calls.length).toBe(previousCallCount+1);
-                    expect(emissionMethod.mock.calls[previousCallCount][0].pk).toBe(5083);
+                    expect(emissionMethod.mock.calls[previousCallCount][0].id).toBe(5083);
                     expect(emissionMethod.mock.calls[previousCallCount][1]).toBe(DataContainer.EmitReasons.TwitchDataMatch);
                 }
                 timeProvider.setTime(new Date(pumpkinJackStart.clone().subtract(11, 'minutes').toISOString()).getTime());
@@ -70,7 +70,7 @@ describe("dataContainer", () => {
                 if (!skipValidation)
                 {
                     expect(emissionMethod.mock.calls.length).toBe(previousCallCount+1);
-                    expect(emissionMethod.mock.calls[previousCallCount][0].pk).toBe(5083);
+                    expect(emissionMethod.mock.calls[previousCallCount][0].id).toBe(5083);
                     expect(emissionMethod.mock.calls[previousCallCount][1]).toBe(DataContainer.EmitReasons.TwitchDataMatch);
                 }
             },
@@ -85,7 +85,7 @@ describe("dataContainer", () => {
                 if (!skipValidation)
                 {
                     expect(emissionMethod.mock.calls.length).toBe(previousCallCount+1);
-                    expect(emissionMethod.mock.calls[previousCallCount][0].pk).toBe(5083);
+                    expect(emissionMethod.mock.calls[previousCallCount][0].id).toBe(5083);
                     expect(emissionMethod.mock.calls[previousCallCount][1]).toBe(DataContainer.EmitReasons.StartInLessThanTenMinutes);
                 }
             }

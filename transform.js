@@ -186,19 +186,20 @@ const relocateFiles = async () => {
     */
     let newNames = files.map(file => {
         const oldFile = file + "";
+        file = file.replace("gamesdonequick.com", "tracker.gamesdonequick.com");
         if (file.includes('type_event')) {
             file = file.replace('v1/search/type_event', 'v2/events');
             return [oldFile, file];
         }
         
         if (file.includes('type_run_eventshort')) {
-            file = file.replace('CGDQ'.toLowerCase(), '6')
-                .replace('AGDQ2021'.toLowerCase(), '34')
-                .replace('SGDQ2021'.toLowerCase(), '35')
-                .replace('AGDQ2022'.toLowerCase(), '37')
-                .replace('SGDQ2022'.toLowerCase(), '39')
-                .replace('AGDQ2023'.toLowerCase(), '41')
-                .replace('SGDQ2023'.toLowerCase(), '43');
+            file = file.replace('eventshort_CGDQ'.toLowerCase(), 'eventshort_6')
+                .replace('eventshort_AGDQ2021'.toLowerCase(), 'eventshort_34')
+                .replace('eventshort_SGDQ2021'.toLowerCase(), 'eventshort_35')
+                .replace('eventshort_AGDQ2022'.toLowerCase(), 'eventshort_37')
+                .replace('eventshort_SGDQ2022'.toLowerCase(), 'eventshort_39')
+                .replace('eventshort_AGDQ2023'.toLowerCase(), 'eventshort_41')
+                .replace('eventshort_SGDQ2023'.toLowerCase(), 'eventshort_43');
             file = file.replace('v1/search/type_run_eventshort_', 'v2/events/');
             file = file.replace(".json", "/runs.json");
         }
@@ -224,4 +225,3 @@ const relocateFiles = async () => {
     return newNames;
 };
 const files = await relocateFiles();
-debugger;

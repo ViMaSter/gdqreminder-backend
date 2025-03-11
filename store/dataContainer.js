@@ -48,7 +48,6 @@ export class DataContainer
   async getAllEvents() 
   {
     let events = (await this.#gotClient.get("https://tracker.gamesdonequick.com/tracker/api/v2/events").json()).results.filter(e=>e.short.toLowerCase().includes("gdq"));
-    debugger;
     events = events.map(event => {
       event.short = event.short.toLowerCase();
       event.startTime = new Date(event.datetime);
@@ -63,7 +62,7 @@ export class DataContainer
   }
   async getEvent(eventID)
   {
-    const runs = await this.#gotClient.get(`https://tracker.gamesdonequick.com/tracker/api/v2/events/${eventID}/runs/`).json();
+    const runs = (await this.#gotClient.get(`https://tracker.gamesdonequick.com/tracker/api/v2/events/${eventID}/runs/`).json()).results;
 
     const runsWithEventIDById = Object.fromEntries(runs.map(entry => {
       entry.startTime = new Date(entry.starttime);
@@ -84,23 +83,25 @@ export class DataContainer
       await this.getAllEvents();
     }
 
+    const eventIndex = this.#data.eventOrder.findIndex(event=>event.id == eventID);
+
     if (this.#data.events[eventID] && this.#data.events[eventID].runsInOrder && this.#data.events[eventID].runsInOrder.length == 0 && runsInOrder.length > 0)
     {
       this.#onNextScheduleReleased(this.#data.events[eventID]);
     }
 
-    this.#data.events[eventPK].runsInOrder = runsInOrder;
+    this.#data.events[eventID].runsInOrder = runsInOrder;
     this.#data.eventOrder[eventIndex].runsInOrder = runsInOrder;
 
     const lastRunOfEvent = runsInOrder?.at(-1);
 
     if (lastRunOfEvent)
     {
-      this.#data.events[eventPK].endTime = new Date(this.#data.runsWithEventID[lastRunOfEvent.id].endTime);
+      this.#data.events[eventID].endTime = new Date(this.#data.runsWithEventID[lastRunOfEvent.id].endTime);
       this.#data.eventOrder[eventIndex].endTime = new Date(this.#data.runsWithEventID[lastRunOfEvent.id].endTime);
     }
 
-    return this.#data.events[eventPK];
+    return this.#data.events[eventID];
   }
 
   async getPreviousEvent()
@@ -189,7 +190,7 @@ export class DataContainer
 
     if (currentRun != null)
     {
-      const previousRunIndex = this.#data.events[currentEventid].runsInOrder.findIndex(run => run.id == currentRun.id) - 1;
+      const previousRunIndex = this.#data.events[currentEvent.id].runsInOrder.findIndex(run => run.id == currentRun.id) - 1;
       if (previousRunIndex < 0)
       {
         return null;
@@ -213,9 +214,9 @@ export class DataContainer
       return null;
     }
 
-    const currentEventPK = currentEvent.id;
+    const currentEventID = currentEvent.id;
 
-    const currentRun = this.#data.events[currentEventPK].runsInOrder.find(run => run.startTime <= this.#timeProvider.getCurrent() && this.#timeProvider.getCurrent() < run.endTime);
+    const currentRun = this.#data.events[currentEventID].runsInOrder.find(run => run.startTime <= this.#timeProvider.getCurrent() && this.#timeProvider.getCurrent() < run.endTime);
     return currentRun;
   }
 
@@ -244,7 +245,7 @@ export class DataContainer
 
   #dataAtLastCheck = {
     timestamp: -1,
-    currentlyTrackedRunPK: null,
+    currentlyTrackedRunID: null,
     notifiedRuns: []
   };
 
@@ -255,12 +256,12 @@ export class DataContainer
 
     this.#dataAtLastCheck.timestamp = now.getTime();
 
-    if (this.#dataAtLastCheck.currentlyTrackedRunPK)
+    if (this.#dataAtLastCheck.currentlyTrackedRunID)
     {
-      await this.getEvent(this.#data.runsWithEventID[this.#dataAtLastCheck.currentlyTrackedRunPK].eventID);
-      if (!this.#dataAtLastCheck.notifiedRuns.includes(this.#dataAtLastCheck.currentlyTrackedRunPK))
+      await this.getEvent(this.#data.runsWithEventID[this.#dataAtLastCheck.currentlyTrackedRunID].eventID);
+      if (!this.#dataAtLastCheck.notifiedRuns.includes(this.#dataAtLastCheck.currentlyTrackedRunID))
       {
-        return this.#data.runsWithEventID[this.#dataAtLastCheck.currentlyTrackedRunPK];
+        return this.#data.runsWithEventID[this.#dataAtLastCheck.currentlyTrackedRunID];
       }
     }
 
@@ -270,43 +271,43 @@ export class DataContainer
       return;
     }
 
-    let nextRunPK = this.#dataAtLastCheck.currentlyTrackedRunPK;
+    let nextRunID = this.#dataAtLastCheck.currentlyTrackedRunID;
     do {
-      if (!this.#dataAtLastCheck.currentlyTrackedRunPK)
+      if (!this.#dataAtLastCheck.currentlyTrackedRunID)
       {
-        nextRunPK = (await this.getNextRun())?.id;
-        if (!nextRunPK)
+        nextRunID = (await this.getNextRun())?.id;
+        if (!nextRunID)
         {
           return null;
         }
         break;
       }
       const relevantEvent = await this.getRelevantEvent();
-      let nextRunEvent = this.#data.runsWithEventID[nextRunPK].eventID;
+      let nextRunEvent = this.#data.runsWithEventID[nextRunID].eventID;
       if (relevantEvent.short != nextRunEvent)
       {
-        nextRunPK = relevantEvent.runsInOrder.at(0).id;
+        nextRunID = relevantEvent.runsInOrder.at(0).id;
         break;
       }
       const eventOfLastTrackedRun = this.#data.events[nextRunEvent];
-      const nextRunIndex = eventOfLastTrackedRun.runsInOrder.findIndex(run => run.id == nextRunPK)+1;
-      nextRunPK = eventOfLastTrackedRun.runsInOrder[nextRunIndex]?.id
-      if (!nextRunPK)
+      const nextRunIndex = eventOfLastTrackedRun.runsInOrder.findIndex(run => run.id == nextRunID)+1;
+      nextRunID = eventOfLastTrackedRun.runsInOrder[nextRunIndex]?.id
+      if (!nextRunID)
       {
         return;
       }
   
-      if (!this.#dataAtLastCheck.notifiedRuns.includes(nextRunPK))
+      if (!this.#dataAtLastCheck.notifiedRuns.includes(nextRunID))
       {
         break;
       }
-      this.#logger.warn(`next run we should be tracking is ${nextRunPK}, but already informed about it, moving to the next`)
+      this.#logger.warn(`next run we should be tracking is ${nextRunID}, but already informed about it, moving to the next`)
       continue;
-    } while(nextRunPK);
+    } while(nextRunID);
 
-    this.#logger.info(`[MONITOR] run pk: ${nextRunPK} (${this.#data.runsWithEventID[nextRunPK].display_name})`);
-    this.#dataAtLastCheck.currentlyTrackedRunPK = nextRunPK;
-    return this.#data.runsWithEventID[nextRunPK];
+    this.#logger.info(`[MONITOR] run pk: ${nextRunID} (${this.#data.runsWithEventID[nextRunID].display_name})`);
+    this.#dataAtLastCheck.currentlyTrackedRunID = nextRunID;
+    return this.#data.runsWithEventID[nextRunID];
   }
 
   async checkTwitch()
