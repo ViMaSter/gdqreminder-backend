@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { promisify } from 'util';
 const readFile = promisify(fs.readFile);
+const rename = promisify(fs.rename);
 const dirname = path.resolve();
 
 import {readdir} from 'node:fs/promises'
@@ -155,5 +156,72 @@ const transformRuns = async (writeContent) => {
 
 // const data = await transformEvents(true);
 // const a = 2;
-const runs = await transformRuns(true);
-const b = 2;
+// const runs = await transformRuns(true);
+// const b = 2;
+
+const relocateFiles = async () => {
+    const files = (await walk("__tests__")).flat(Number.POSITIVE_INFINITY);
+    /*
+    replace:
+    CGDQ with 6
+    AGDQ2021 with 34
+    SGDQ2021 with 35
+    AGDQ2022 with 37
+    SGDQ2022 with 39
+    AGDQ2023 with 41
+    SGDQ2023 with 43
+    */
+
+    /*
+    replace:
+    /workspaces/gdqreminder-backend/__tests__/fixtures/during-preshow/GET/gamesdonequick.com/tracker/api/v1/search/type_event.json
+    with:
+    /workspaces/gdqreminder-backend/__tests__/fixtures/during-preshow/GET/gamesdonequick.com/tracker/api/v2/events.json
+
+    and replace:
+    /workspaces/gdqreminder-backend/__tests__/fixtures/during-preshow/GET/gamesdonequick.com/tracker/api/v1/search/type_run_eventshort_agdq2022.json
+    with:
+    /workspaces/gdqreminder-backend/__tests__/fixtures/during-preshow/GET/gamesdonequick.com/tracker/api/v2/events/37/runs.json
+    /
+    */
+    let newNames = files.map(file => {
+        const oldFile = file + "";
+        if (file.includes('type_event')) {
+            file = file.replace('v1/search/type_event', 'v2/events');
+            return [oldFile, file];
+        }
+        
+        if (file.includes('type_run_eventshort')) {
+            file = file.replace('CGDQ'.toLowerCase(), '6')
+                .replace('AGDQ2021'.toLowerCase(), '34')
+                .replace('SGDQ2021'.toLowerCase(), '35')
+                .replace('AGDQ2022'.toLowerCase(), '37')
+                .replace('SGDQ2022'.toLowerCase(), '39')
+                .replace('AGDQ2023'.toLowerCase(), '41')
+                .replace('SGDQ2023'.toLowerCase(), '43');
+            file = file.replace('v1/search/type_run_eventshort_', 'v2/events/');
+            file = file.replace(".json", "/runs.json");
+        }
+
+        return [oldFile, file];
+    });
+
+    // relocate files form oldFile to file
+    const results = await Promise.all(newNames.map(async ([oldFile, file]) => {
+        // recursively create target directory if it doesn't exist
+        const targetDir = path.dirname(file);
+        const parts = targetDir.split(path.sep);
+        for (let i = 1; i <= parts.length; i++) {
+            const dir = parts.slice(0, i).join(path.sep);
+            if (!fs.existsSync(dir)) {
+                fs.mkdirSync(dir);
+            }
+        }
+        await rename(oldFile, file);
+    }));
+    console.log(results);
+
+    return newNames;
+};
+const files = await relocateFiles();
+debugger;
