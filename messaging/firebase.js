@@ -17,7 +17,9 @@ export default class Firebase {
         sendStartMessageForRun(topic);
     }
     sendStartMessageForRun(run, reason) {
-        const topic = `run.start.${run.pk}`;
+        debugger;
+        return;
+        const topic = `run.start.${run.id}`;
 
         const firebaseMessage = {
             notification: {
@@ -36,18 +38,20 @@ export default class Firebase {
             topic: topic
         };
 
-        let logData = {firebaseMessage, pk: run.pk, display_name: run.display_name, reason};
+        let logData = {firebaseMessage, id: run.id, display_name: run.display_name, reason};
 
-        this.#logger.info("[FIREBASE] Sending message for run {pk} ({display_name})... (Reason: {reason})", logData);
+        this.#logger.info("[FIREBASE] Sending message for run {id} ({display_name})... (Reason: {reason})", logData);
         getMessaging().send(firebaseMessage)
             .then((response) => {
-                this.#logger.info("[FIREBASE] Successfully sent message for run {pk} ({display_name}): {response} (Reason: {reason})", {...logData, response});
+                this.#logger.info("[FIREBASE] Successfully sent message for run {id} ({display_name}): {response} (Reason: {reason})", {...logData, response});
             })
             .catch((error) => {
-                this.#logger.info("[FIREBASE] Error sending message for run {pk} ({display_name}): {error} (Error: {error})", {...logData, error});
+                this.#logger.info("[FIREBASE] Error sending message for run {id} ({display_name}): {error} (Error: {error})", {...logData, error});
             });
     }
     sendStartMessageForNewSchedule(event, reason) {
+        debugger;
+        return;
         const topic = `event.schedule`;
 
         const firebaseMessage = {
