@@ -1,7 +1,7 @@
 # Backend for [GDQReminder App](https://github.com/ViMaSter/gdqreminder-mobile/) [![codecov](https://codecov.io/gh/ViMaSter/gdqreminder-backend/branch/main/graph/badge.svg?token=0CRSIRXAS1)](https://codecov.io/gh/ViMaSter/gdqreminder-backend)
 
 # Quickstart using Docker
-1. Create a new folder (this README will refer to this folder as `$ROOT``)
+1. Create a new folder (this README will refer to this folder as `$ROOT`)
 2. Visit `Settings` -> [`Service Accounts`](https://console.firebase.google.com/project/_/settings/serviceaccounts/adminsdk) of your firebase project
 3. `Generate New Private key`, download and store this file at `$ROOT/firebase.json`
 4. Create a `$ROOT/.env` file with the following contents
