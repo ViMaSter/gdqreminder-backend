@@ -2,19 +2,19 @@ import { FakeHTTPClient, PrefixEmptyError } from '../../stubs/fakeHTTPClient';
 
 describe("FakeHTTPClient", () => {
     test(`[EVENTS] can read files`, async () => {
-        const request = new FakeHTTPClient("during-preshow").get("https://gamesdonequick.com/tracker/api/v1/search/?type=event");
+        const request = new FakeHTTPClient("during-preshow").get("https://tracker.gamesdonequick.com/tracker/api/v2/events");
         const content = await request.json();
         expect(content.length).toBe(36);
     });
 
     const events = {
-        "sgdq2021": 153,
-        "agdq2022": 149,
-        "sgdq2022": 136,
+        35: 153,
+        37: 149,
+        39: 136,
     };
-    Object.entries(events).forEach(([eventShort, runCount]) => {
-        test(`[${eventShort}] can read files`, async () => {
-            const request = new FakeHTTPClient("during-preshow").get("https://gamesdonequick.com/tracker/api/v1/search/?type=run&eventshort=" + eventShort);
+    Object.entries(events).forEach(([eventID, runCount]) => {
+        test(`[${eventID}] can read files`, async () => {
+            const request = new FakeHTTPClient("during-preshow").get("https://tracker.gamesdonequick.com/tracker/api/v2/events/" + eventID + "/runs/");
             const content = await request.json();
             expect(content.length).toBe(runCount);
         });
