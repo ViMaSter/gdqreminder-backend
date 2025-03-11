@@ -283,15 +283,15 @@ export class DataContainer
         break;
       }
       const relevantEvent = await this.getRelevantEvent();
-      let nextRunEvent = this.#data.runsWithEventID[nextRunID].eventID;
-      if (relevantEvent.short != nextRunEvent)
+      let nextRunEventID = this.#data.runsWithEventID[nextRunID].eventID;
+      if (relevantEvent.id != nextRunEventID)
       {
         nextRunID = relevantEvent.runsInOrder.at(0).id;
         break;
       }
-      const eventOfLastTrackedRun = this.#data.events[nextRunEvent];
-      const nextRunIndex = eventOfLastTrackedRun.runsInOrder.findIndex(run => run.id == nextRunID)+1;
-      nextRunID = eventOfLastTrackedRun.runsInOrder[nextRunIndex]?.id
+      const eventIDOfLastTrackedRun = this.#data.events[nextRunEventID];
+      const nextRunIndex = eventIDOfLastTrackedRun.runsInOrder.findIndex(run => run.id == nextRunID)+1;
+      nextRunID = eventIDOfLastTrackedRun.runsInOrder[nextRunIndex]?.id
       if (!nextRunID)
       {
         return;
