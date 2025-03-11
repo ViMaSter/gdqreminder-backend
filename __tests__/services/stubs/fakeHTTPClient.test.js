@@ -4,7 +4,7 @@ describe("FakeHTTPClient", () => {
     test(`[EVENTS] can read files`, async () => {
         const request = new FakeHTTPClient("during-preshow").get("https://tracker.gamesdonequick.com/tracker/api/v2/events");
         const content = await request.json();
-        expect(content.length).toBe(36);
+        expect(content.count).toBe(36);
     });
 
     const events = {
@@ -16,7 +16,7 @@ describe("FakeHTTPClient", () => {
         test(`[${eventID}] can read files`, async () => {
             const request = new FakeHTTPClient("during-preshow").get("https://tracker.gamesdonequick.com/tracker/api/v2/events/" + eventID + "/runs/");
             const content = await request.json();
-            expect(content.length).toBe(runCount);
+            expect(content.count).toBe(runCount);
         });
     });
 

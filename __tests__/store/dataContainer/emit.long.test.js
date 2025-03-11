@@ -16,7 +16,7 @@ describe("dataContainer", () => {
                 await dataContainer.getRunToMonitor();
 
                 const bufferInMinutes = 30;
-                const eventShorts = ["agdq2022", "sgdq2022"];
+                const eventShorts = [37, 39];
                 for (let j = 0; j < eventShorts.length; ++j)
                 {
                     const eventShort = eventShorts[j];
