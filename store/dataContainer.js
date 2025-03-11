@@ -305,7 +305,7 @@ export class DataContainer
       continue;
     } while(nextRunID);
 
-    this.#logger.info(`[MONITOR] run pk: ${nextRunID} (${this.#data.runsWithEventID[nextRunID].display_name})`);
+    this.#logger.info(`[MONITOR] run id: ${nextRunID} (${this.#data.runsWithEventID[nextRunID].display_name})`);
     this.#dataAtLastCheck.currentlyTrackedRunID = nextRunID;
     return this.#data.runsWithEventID[nextRunID];
   }
