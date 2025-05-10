@@ -85,9 +85,17 @@ export class DataContainer
 
     const eventIndex = this.#data.eventOrder.findIndex(event=>event.id == eventID);
 
-    if (this.#data.events[eventID] && this.#data.events[eventID].runsInOrder && this.#data.events[eventID].runsInOrder.length == 0 && runsInOrder.length > 0)
+    if (!this.#data.events[eventID]?.runsInOrder?.length && runsInOrder?.length > 0)
     {
-      this.#onNextScheduleReleased(this.#data.events[eventID]);
+      // Skip the notification if no other event has runsInOrder yet
+      // 
+      // After a restart, no event has any runsInOrder. Without this check,
+      //   we'd always send out notifications to the newest event. With it,
+      //   this only happens, if at least one already has run information 
+      if (Object.values(this.#data.events).some(event => event.runsInOrder))
+      {
+        this.#onNextScheduleReleased?.(this.#data.events[eventID]);
+      }
     }
 
     this.#data.events[eventID].runsInOrder = runsInOrder;
