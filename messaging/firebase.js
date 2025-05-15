@@ -48,7 +48,7 @@ export default class Firebase {
 
         const firebaseMessage = {
             notification: {
-                title: `GDQ Reminder: ${event.fields.short} announced!`,
+                title: `GDQ Reminder: ${event.short} announced!`,
                 body: "Tap to set your reminders!"
             },
             android: {
@@ -59,20 +59,20 @@ export default class Firebase {
             },
             data: {
                 event: topic,
-                short: event.fields.short
+                short: event.short
             },
             topic: topic
         };
 
         let logData = {firebaseMessage, event, reason};
 
-        this.#logger.info("[FIREBASE] Sending message for event {event.fields.short}", logData);
+        this.#logger.info("[FIREBASE] Sending message for event {event.short}", logData);
         getMessaging().send(firebaseMessage)
             .then((response) => {
-                this.#logger.info("[FIREBASE] Successfully sent message for event {event.fields.short} (Response: {response})", {...logData, response});
+                this.#logger.info("[FIREBASE] Successfully sent message for event {event.short} (Response: {response})", {...logData, response});
             })
             .catch((error) => {
-                this.#logger.info("[FIREBASE] Error sending message for event {event.fields.short} (Error: {error})", {...logData, error});
+                this.#logger.info("[FIREBASE] Error sending message for event {event.short} (Error: {error})", {...logData, error});
             });
     }
 }

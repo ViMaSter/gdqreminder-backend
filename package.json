@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "server": "node main --refreshIntervalInMS=5000",
-    "test": "node --experimental-vm-modules ./node_modules/.bin/jest"
+    "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js"
   },
   "repository": {
     "type": "git",
