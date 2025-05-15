@@ -29,10 +29,9 @@ export class DataContainer
   #gotClient = null;
   #timeProvider = null;
   #onNextRunStarted = null;
-  #onNextScheduleReleased = null;
   #twitch = null;
 
-  constructor(logger, gotClient, timeProvider, twitch, onNextRunStarted, onNextScheduleReleased)
+  constructor(logger, gotClient, timeProvider, twitch, onNextRunStarted)
   {
     if (logger)
     {
@@ -41,7 +40,6 @@ export class DataContainer
     this.#gotClient = gotClient;
     this.#timeProvider = timeProvider;
     this.#onNextRunStarted = onNextRunStarted;
-    this.#onNextScheduleReleased = onNextScheduleReleased;
     this.#twitch = twitch;
   }
 
@@ -84,19 +82,6 @@ export class DataContainer
     }
 
     const eventIndex = this.#data.eventOrder.findIndex(event=>event.id == eventID);
-
-    if (!this.#data.events[eventID]?.runsInOrder?.length && runsInOrder?.length > 0)
-    {
-      // Skip the notification if no other event has runsInOrder yet
-      // 
-      // After a restart, no event has any runsInOrder. Without this check,
-      //   we'd always send out notifications to the newest event. With it,
-      //   this only happens, if at least one already has run information 
-      if (Object.values(this.#data.events).some(event => event.runsInOrder))
-      {
-        this.#onNextScheduleReleased?.(this.#data.events[eventID]);
-      }
-    }
 
     this.#data.events[eventID].runsInOrder = runsInOrder;
     this.#data.eventOrder[eventIndex].runsInOrder = runsInOrder;

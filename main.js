@@ -75,11 +75,7 @@ const startup = async (logger, config) => {
     logger.info("[EMISSION] run start: " + run.id);
     firebase.sendStartMessageForRun(run, reason);
   };
-  const onNextScheduleReleased = (event) => {
-    logger.info("[EMISSION] schedule update: " + event);
-    firebase.sendStartMessageForNewSchedule(event);
-  }
-  const dataContainer = new DataContainer(logger, got, timeProvider, new Twitch(got, process.env.TWITCH_CLIENT_ID, logger), onNextRunStarted, onNextScheduleReleased);
+  const dataContainer = new DataContainer(logger, got, timeProvider, new Twitch(got, process.env.TWITCH_CLIENT_ID, logger), onNextRunStarted);
 
   let dataContainerConfig = {
     refreshIntervalInMS
