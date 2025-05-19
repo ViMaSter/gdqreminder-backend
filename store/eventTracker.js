@@ -1,19 +1,7 @@
 import moment from "moment";
 
 export class EventTracker {
-    #logger = {
-        error: ()=>{},
-        warn: ()=>{},
-        help: ()=>{},
-        data: ()=>{},
-        info: ()=>{},
-        debug: ()=>{},
-        prompt: ()=>{},
-        http: ()=>{},
-        verbose: ()=>{},
-        input: ()=>{},
-        silly: ()=>{},
-    };
+    #logger = null;
     #lastEventID = null;
     #httpClient = null;
     #timeProvider = null;
