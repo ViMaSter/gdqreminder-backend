@@ -6,15 +6,20 @@ import { Twitch } from '../../services/twitch.js';
 import { FakeHTTPClient } from '../stubs/fakeHTTPClient.js';
 
 const fifteenMinutesBeforeAGDQ2022 = "2022-01-09T16:15:00Z";
-const refreshIntervalInMS = 10000;
-const secondsPassingEachCheck = 30;
+const secondsPassingEachCheck = 300;
+
+const stubLogger = {
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn()
+};
 
 describe("integration", () => {
     const emissionMethod = jest.fn();
     const timeProvider = new FakeTimeProvider(new Date(fifteenMinutesBeforeAGDQ2022).getTime());
     const fakeHTTPClient = new FakeHTTPClient("integration/runs/0-before-preshow");
     
-    const dataContainer = new DataContainer(undefined, fakeHTTPClient, timeProvider, new Twitch(fakeHTTPClient, ""), emissionMethod);
+    const systemUnderTest = new DataContainer(stubLogger, fakeHTTPClient, timeProvider, new Twitch(fakeHTTPClient, ""), emissionMethod);
     const loopWithEvents = new Promise(async (resolve, reject) => {
         const events = {
             "2022-01-09T16:35:00.000Z": () => {
@@ -26,7 +31,7 @@ describe("integration", () => {
                 fakeHTTPClient.setPrefix("integration/runs/3-dkc2-is-in-the-past");
             },
             "2022-01-09T19:30:00Z": () => {
-                dataContainer.stopLoop();
+                systemUnderTest.stopLoop();
                 resolve(); // end test
             }
         };
@@ -52,7 +57,7 @@ describe("integration", () => {
             }
         };
         const checkForEvents = (now) => {
-            timeProvider.passTime(refreshIntervalInMS * secondsPassingEachCheck);
+            timeProvider.passTime(1000 * secondsPassingEachCheck);
             Object.keys(events).forEach(key => {
                 if (!moment(key).isBefore(now))
                 {
@@ -77,8 +82,9 @@ describe("integration", () => {
         try
         {
             jest.useFakeTimers();
-            await dataContainer.startLoop({beforeNextCheck: checkForEvents, afterEachCheck: runValidations});
+            const promise = systemUnderTest.startLoop({beforeNextCheck: checkForEvents, afterEachCheck: runValidations});
             expect(systemUnderTest.startLoop({beforeNextCheck: checkForEvents, afterEachCheck: runValidations})).rejects.toThrow();
+            await promise;
         }
         catch (e)
         {
@@ -88,5 +94,6 @@ describe("integration", () => {
 
     it("emits for each different occasion", async () => {
         await loopWithEvents;
-    }, 30000)
+        expect.hasAssertions();
+    }, 5000);
 })

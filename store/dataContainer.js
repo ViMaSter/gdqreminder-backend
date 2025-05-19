@@ -13,19 +13,7 @@ export class DataContainer
     "runsWithEventID": {},
   };
 
-  #logger = {
-    error: ()=>{},
-    warn: ()=>{},
-    help: ()=>{},
-    data: ()=>{},
-    info: ()=>{},
-    debug: ()=>{},
-    prompt: ()=>{},
-    http: ()=>{},
-    verbose: ()=>{},
-    input: ()=>{},
-    silly: ()=>{},
-  };
+  #logger = null;
   #httpClient = null;
   #timeProvider = null;
   #onNextRunStarted = null;

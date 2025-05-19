@@ -5,16 +5,19 @@ import { EventTracker } from '../../store/eventTracker.js';
 import { FakeHTTPClient } from '../stubs/fakeHTTPClient.js';
 
 const tenMinutesBeforeAGDQ2025 = "2022-01-09T16:00:00Z";
-const refreshIntervalInMS = 10000;
 const secondsPassingEachCheck = 30;
+
+const stubLogger = {
+    info: jest.fn(),
+    error: jest.fn()
+};
 
 describe("integration", () => {
     const emissionMethod = jest.fn();
     const timeProvider = new FakeTimeProvider(new Date(tenMinutesBeforeAGDQ2025).getTime());
     const fakeHTTPClient = new FakeHTTPClient("integration/events/0-sgdq2024-is-latest");
     
-    const systemUnderTest = new EventTracker(undefined, fakeHTTPClient, timeProvider, emissionMethod);
-
+    const systemUnderTest = new EventTracker(stubLogger, fakeHTTPClient, timeProvider, emissionMethod);
     const loopWithEvents = new Promise(async (resolve, reject) => {
         const events = {
             "2022-01-09T16:10:00.000Z": () => {
@@ -83,8 +86,9 @@ describe("integration", () => {
         try
         {
             jest.useFakeTimers();
-            await systemUnderTest.startLoop({beforeNextCheck: checkForEvents, afterEachCheck: runValidations});
+            const promise = systemUnderTest.startLoop({beforeNextCheck: checkForEvents, afterEachCheck: runValidations});
             expect(systemUnderTest.startLoop({beforeNextCheck: checkForEvents, afterEachCheck: runValidations})).rejects.toThrow();
+            await promise;
         }
         catch (e)
         {
