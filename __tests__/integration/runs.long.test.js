@@ -78,6 +78,7 @@ describe("integration", () => {
         {
             jest.useFakeTimers();
             await dataContainer.startLoop({beforeNextCheck: checkForEvents, afterEachCheck: runValidations});
+            expect(systemUnderTest.startLoop({beforeNextCheck: checkForEvents, afterEachCheck: runValidations})).rejects.toThrow();
         }
         catch (e)
         {
