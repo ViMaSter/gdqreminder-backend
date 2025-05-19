@@ -18,24 +18,42 @@ describe("integration", () => {
     const loopWithEvents = new Promise(async (resolve, reject) => {
         const events = {
             "2022-01-09T16:10:00.000Z": () => {
-                fakeHTTPClient.setPrefix("integration/events/1-agdq2025-is-latest");
+                fakeHTTPClient.setPrefix("integration/events/1-agdq2025-is-404");
             },
             "2022-01-09T16:20:00.000Z": () => {
-                fakeHTTPClient.setPrefix("integration/events/2-sgdq2025-is-latest");
+                fakeHTTPClient.setPrefix("integration/events/2-agdq2025-is-403");
             },
             "2022-01-09T16:30:00.000Z": () => {
+                fakeHTTPClient.setPrefix("integration/events/3-agdq2025-is-latest");
+            },
+            "2022-01-09T16:40:00.000Z": () => {
+                fakeHTTPClient.setPrefix("integration/events/4-sgdq2025-is-404");
+            },
+            "2022-01-09T16:50:00.000Z": () => {
+                fakeHTTPClient.setPrefix("integration/events/5-sgdq2025-is-403");
+            },
+            "2022-01-09T17:00:00.000Z": () => {
+                fakeHTTPClient.setPrefix("integration/events/6-sgdq2025-is-latest");
+            },
+            "2022-01-09T17:10:00.000Z": () => {
                 systemUnderTest.stopLoop();
                 resolve(); // end test
             }
         };
         const validations = {
-            "2022-01-09T16:05:00.000Z": () => {
+            "2022-01-09T16:25:00.000Z": () => {
                 expect(emissionMethod.mock.calls.length).toBe(0);
             },
-            "2022-01-09T16:15:00.000Z": () => {
+            "2022-01-09T16:35:00.000Z": () => {
+                expect(emissionMethod.mock.calls.length).toBe(1);
                 expect(emissionMethod.mock.calls[0][0].short.toLowerCase()).toBe("agdq2025");
             },
-            "2022-01-09T16:25:00.000Z": () => {
+            "2022-01-09T16:55:00.000Z": () => {
+                expect(emissionMethod.mock.calls.length).toBe(1);
+                expect(emissionMethod.mock.calls[0][0].short.toLowerCase()).toBe("agdq2025");
+            },
+            "2022-01-09T17:05:00.000Z": () => {
+                expect(emissionMethod.mock.calls.length).toBe(2);
                 expect(emissionMethod.mock.calls[1][0].short.toLowerCase()).toBe("sgdq2025");
             },
         };

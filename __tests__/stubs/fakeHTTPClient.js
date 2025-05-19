@@ -3,23 +3,39 @@ import path from 'path';
 
 class Response
 {
+    #statusCode = null;
+    #content = null;
     constructor(content)
     {
-        this.content = content;
+        if (!content)
+        {
+            this.#statusCode = 404;
+            this.#content = null;
+            return;
+        }
+
+        // convert content which is buffer to string
+        this.#content = content.toString();
+        const firstLine = this.#content.split("\n")[0];
+        if (firstLine.match(/^\d+$/))
+        {
+            this.#statusCode = parseInt(firstLine);
+            this.#content = this.#content.split("\n").slice(1).join("\n");
+            return;
+        }
+
+        this.#statusCode = 200;
+        this.#content = content;
     }
 
     get statusCode() 
     {
-        if (this.content)
-        {
-            return 200;
-        }
-        return 404;
+        return this.#statusCode;
     }
 
     async json()
     {
-        return JSON.parse(this.content);
+        return JSON.parse(this.#content);
     }
 }
 
@@ -58,6 +74,10 @@ export class FakeHTTPClient
         ].filter(entry=>!!entry);
 
         const filePath = path.resolve(path.dirname(''), parts.join("/")+".json");
+        if (!fs.existsSync(filePath))
+        {
+            return new Response(null);
+        }
         return new Response(fs.readFileSync(filePath));
     }
     
