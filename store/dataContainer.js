@@ -26,18 +26,18 @@ export class DataContainer
     input: ()=>{},
     silly: ()=>{},
   };
-  #gotClient = null;
+  #httpClient = null;
   #timeProvider = null;
   #onNextRunStarted = null;
   #twitch = null;
 
-  constructor(logger, gotClient, timeProvider, twitch, onNextRunStarted)
+  constructor(logger, httpClient, timeProvider, twitch, onNextRunStarted)
   {
     if (logger)
     {
       this.#logger = logger;
     }
-    this.#gotClient = gotClient;
+    this.#httpClient = httpClient;
     this.#timeProvider = timeProvider;
     this.#onNextRunStarted = onNextRunStarted;
     this.#twitch = twitch;
@@ -45,7 +45,7 @@ export class DataContainer
 
   async getAllEvents() 
   {
-    let events = (await this.#gotClient.get("https://tracker.gamesdonequick.com/tracker/api/v2/events").json()).results.filter(e=>e.short.toLowerCase().includes("gdq"));
+    let events = (await this.#httpClient.get("https://tracker.gamesdonequick.com/tracker/api/v2/events").json()).results.filter(e=>e.short.toLowerCase().includes("gdq"));
     events = events.map(event => {
       event.short = event.short.toLowerCase();
       event.startTime = new Date(event.datetime);
@@ -60,7 +60,7 @@ export class DataContainer
   }
   async getEvent(eventID)
   {
-    const runs = (await this.#gotClient.get(`https://tracker.gamesdonequick.com/tracker/api/v2/events/${eventID}/runs/`).json()).results;
+    const runs = (await this.#httpClient.get(`https://tracker.gamesdonequick.com/tracker/api/v2/events/${eventID}/runs/`).json()).results;
 
     const runsWithEventIDById = Object.fromEntries(runs.map(entry => {
       entry.startTime = new Date(entry.starttime);
@@ -365,6 +365,9 @@ export class DataContainer
 
   #continueLoop = false;
   async startLoop(config) {
+    if (this.#continueLoop) {
+      throw new Error("Loop is already running");
+    }
     this.#continueLoop = true;
     const {beforeNextCheck, afterEachCheck, refreshIntervalInMS} = config;
     while (this.#continueLoop)

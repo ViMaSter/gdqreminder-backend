@@ -7,7 +7,7 @@ import { FakeHTTPClient } from '../stubs/fakeHTTPClient.js';
 
 const fifteenMinutesBeforeAGDQ2022 = "2022-01-09T16:15:00Z";
 const refreshIntervalInMS = 10000;
-const speedup = 30;
+const secondsPassingEachCheck = 30;
 
 describe("integration", () => {
     const emissionMethod = jest.fn();
@@ -52,7 +52,7 @@ describe("integration", () => {
             }
         };
         const checkForEvents = (now) => {
-            timeProvider.passTime(refreshIntervalInMS * speedup);
+            timeProvider.passTime(refreshIntervalInMS * secondsPassingEachCheck);
             Object.keys(events).forEach(key => {
                 if (!moment(key).isBefore(now))
                 {

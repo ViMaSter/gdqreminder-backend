@@ -1,11 +1,20 @@
 import fs from 'fs';
 import path from 'path';
 
-class Request
+class Response
 {
     constructor(content)
     {
         this.content = content;
+    }
+
+    get statusCode() 
+    {
+        if (this.content)
+        {
+            return 200;
+        }
+        return 404;
     }
 
     async json()
@@ -49,7 +58,7 @@ export class FakeHTTPClient
         ].filter(entry=>!!entry);
 
         const filePath = path.resolve(path.dirname(''), parts.join("/")+".json");
-        return new Request(fs.readFileSync(filePath));
+        return new Response(fs.readFileSync(filePath));
     }
     
     post(url)
@@ -64,6 +73,6 @@ export class FakeHTTPClient
             parsedURL.hostname + parsedURL.pathname.replaceAll(/\/$/g, "")
         ].filter(entry=>!!entry);
         const filePath = path.resolve(path.dirname(''), parts.join("/") + ".json");
-        return new Request(fs.readFileSync(filePath));
+        return new Response(fs.readFileSync(filePath));
     }
 }
