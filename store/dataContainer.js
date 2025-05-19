@@ -342,15 +342,6 @@ export class DataContainer
     this.#onNextRunStarted(monitoredRun, DataContainer.EmitReasons.StartInLessThanTenMinutes);
   }
 
-  async checkForRunsInNextEvent()
-  {
-    const nextEvent = await this.getNextEvent();
-    if (!nextEvent)
-    {
-      return;
-    }
-  }
-
   #continueLoop = false;
   async startLoop(config) {
     if (this.#continueLoop) {
@@ -364,7 +355,7 @@ export class DataContainer
         beforeNextCheck?.(startAt);
         await this.checkFor10MinuteWarning();
         await this.checkTwitch();
-        await this.checkForRunsInNextEvent();
+        await this.getNextEvent(); // checks for runs in next event
         this.#logger.info("[LOOP] duration: " + moment.utc(moment(this.#timeProvider.getCurrent()).diff(startAt)).format("HH:mm:ss.SSS"));
         await new Promise((resolve) => {
           setTimeout(resolve, refreshIntervalInMS)
