@@ -1,5 +1,6 @@
 import { initializeApp } from 'firebase-admin/app';
 import Firebase from './messaging/firebase.js';
+import { EventTracker } from './store/eventTracker.js';
 import { DataContainer } from './store/dataContainer.js';
 import { FakeTimeProvider } from './services/timeProvider/fakeTimeProvider.js';
 import { RealTimeProvider } from './services/timeProvider/realTimeProvider.js';
@@ -71,23 +72,27 @@ const startup = async (logger, config) => {
   }
 
   const firebase = new Firebase(logger);
+
   const onNextRunStarted = (run, reason) => {
     logger.info("[EMISSION] run start: " + run.id);
     firebase.sendStartMessageForRun(run, reason);
   };
-  const dataContainer = new DataContainer(logger, got, timeProvider, new Twitch(got, process.env.TWITCH_CLIENT_ID, logger), onNextRunStarted);
-
-  let dataContainerConfig = {
-    refreshIntervalInMS
+  const onNextEventScheduleReleased = (event) => {
+    logger.info("[EMISSION] event announced: " + event.id);
+    // firebase.sendStartMessageForNewSchedule(event);
   };
-  if (timeProvider instanceof FakeTimeProvider)
-  {
-    dataContainerConfig.beforeNextCheck = () => {
+  
+  const dataContainer = new DataContainer(logger, got, timeProvider, new Twitch(got, process.env.TWITCH_CLIENT_ID, logger), onNextRunStarted);
+  const eventTracker = new EventTracker(logger, got, timeProvider, onNextEventScheduleReleased);
+  
+  await Promise.all([
+    dataContainer.startLoop({...config,
+      beforeNextCheck: (timeProvider instanceof FakeTimeProvider) ? () => {
       timeProvider.passTime(refreshIntervalInMS * speedup);
       logger.info(`[TIME] Passing ${((refreshIntervalInMS * speedup) / 1000)} seconds; now ${timeProvider.getCurrent().toISOString()}`);
-    };
-  }
-  await dataContainer.startLoop(dataContainerConfig);
+    } : undefined}),
+    eventTracker.startLoop(config)
+  ]);
 };
 
 const logger = setupLogger(parsedArgs);

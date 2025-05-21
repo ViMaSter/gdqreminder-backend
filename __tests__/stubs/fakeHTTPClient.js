@@ -33,6 +33,11 @@ class Response
         return this.#statusCode;
     }
 
+    get body()
+    {
+        return this.#content;
+    }
+
     async json()
     {
         return JSON.parse(this.#content);

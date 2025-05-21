@@ -248,7 +248,7 @@ export class DataContainer
 
     if (lastCalledAt == -1)
     {
-      this.#logger.info(`[MONITOR]: initial check: ${now.toISOString()}`);
+      this.#logger.info(`[RUN-LOOP] initial check: ${now.toISOString()}`);
       return;
     }
 
@@ -282,11 +282,11 @@ export class DataContainer
       {
         break;
       }
-      this.#logger.warn(`next run we should be tracking is ${nextRunID}, but already informed about it, moving to the next`)
+      this.#logger.warn(`[RUN-LOOP] next run we should be tracking is ${nextRunID}, but already informed about it, moving to the next`)
       continue;
     } while(nextRunID);
 
-    this.#logger.info(`[MONITOR] run id: ${nextRunID} (${this.#data.runsWithEventID[nextRunID].display_name})`);
+    this.#logger.info(`[RUN-LOOP] run id: ${nextRunID} (${this.#data.runsWithEventID[nextRunID].display_name})`);
     this.#dataAtLastCheck.currentlyTrackedRunID = nextRunID;
     return this.#data.runsWithEventID[nextRunID];
   }
@@ -356,7 +356,7 @@ export class DataContainer
         await this.checkFor10MinuteWarning();
         await this.checkTwitch();
         await this.getNextEvent(); // checks for runs in next event
-        this.#logger.info("[LOOP] duration: " + moment.utc(moment(this.#timeProvider.getCurrent()).diff(startAt)).format("HH:mm:ss.SSS"));
+        this.#logger.info("[RUN-LOOP] duration: " + moment.utc(moment(this.#timeProvider.getCurrent()).diff(startAt)).format("HH:mm:ss.SSS"));
         await new Promise((resolve) => {
           setTimeout(resolve, refreshIntervalInMS)
           afterEachCheck?.(startAt);
