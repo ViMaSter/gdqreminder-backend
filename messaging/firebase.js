@@ -43,7 +43,7 @@ export default class Firebase {
                 this.#logger.info("[FIREBASE] Error sending message for run {id} ({display_name}): {error} (Error: {error})", {...logData, error});
             });
     }
-    sendStartMessageForNewSchedule(event, reason) {
+    sendStartMessageForNewSchedule(event) {
         const topic = `event.schedule`;
 
         const firebaseMessage = {
@@ -64,7 +64,7 @@ export default class Firebase {
             topic: topic
         };
 
-        let logData = {firebaseMessage, event, reason};
+        let logData = {firebaseMessage, event};
 
         this.#logger.info("[FIREBASE] Sending message for event {event.short}", logData);
         getMessaging().send(firebaseMessage)
