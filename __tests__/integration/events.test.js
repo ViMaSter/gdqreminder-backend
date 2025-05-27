@@ -33,18 +33,30 @@ describe("integration", () => {
                 fakeHTTPClient.setPrefix("integration/events/4-agdq2025-is-latest");
             },
             "2022-01-09T16:50:00.000Z": () => {
-                fakeHTTPClient.setPrefix("integration/events/5-sgdq2025-is-403");
+                fakeHTTPClient.setPrefix("integration/events/5-SpeedAtPAXEast25-is-403");
             },
             "2022-01-09T17:00:00.000Z": () => {
-                fakeHTTPClient.setPrefix("integration/events/6-sgdq2025-is-404");
+                fakeHTTPClient.setPrefix("integration/events/6-SpeedAtPAXEast25-is-404");
             },
             "2022-01-09T17:10:00.000Z": () => {
-                fakeHTTPClient.setPrefix("integration/events/7-sgdq2025-has-zero-runs");
+                fakeHTTPClient.setPrefix("integration/events/7-SpeedAtPAXEast25-has-zero-runs");
             },
             "2022-01-09T17:20:00.000Z": () => {
-                fakeHTTPClient.setPrefix("integration/events/8-sgdq2025-is-latest");
+                fakeHTTPClient.setPrefix("integration/events/8-SpeedAtPAXEast25-is-latest");
             },
             "2022-01-09T17:30:00.000Z": () => {
+                fakeHTTPClient.setPrefix("integration/events/9-sgdq2025-is-403");
+            },
+            "2022-01-09T17:40:00.000Z": () => {
+                fakeHTTPClient.setPrefix("integration/events/10-sgdq2025-is-404");
+            },
+            "2022-01-09T17:50:00.000Z": () => {
+                fakeHTTPClient.setPrefix("integration/events/11-sgdq2025-has-zero-runs");
+            },
+            "2022-01-09T18:00:00.000Z": () => {
+                fakeHTTPClient.setPrefix("integration/events/12-sgdq2025-is-latest");
+            },
+            "2022-01-09T18:10:00.000Z": () => {
                 systemUnderTest.stopLoop();
                 resolve(); // end test
             }
@@ -57,11 +69,11 @@ describe("integration", () => {
                 expect(emissionMethod.mock.calls.length).toBe(1);
                 expect(emissionMethod.mock.calls[0][0].short.toLowerCase()).toBe("agdq2025");
             },
-            "2022-01-09T17:15:00.000Z": () => {
+            "2022-01-09T17:55:00.000Z": () => {
                 expect(emissionMethod.mock.calls.length).toBe(1);
                 expect(emissionMethod.mock.calls[0][0].short.toLowerCase()).toBe("agdq2025");
             },
-            "2022-01-09T17:25:00.000Z": () => {
+            "2022-01-09T18:05:00.000Z": () => {
                 expect(emissionMethod.mock.calls.length).toBe(2);
                 expect(emissionMethod.mock.calls[1][0].short.toLowerCase()).toBe("sgdq2025");
             },

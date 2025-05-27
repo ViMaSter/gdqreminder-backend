@@ -79,7 +79,11 @@ export class EventTracker {
             return;
         }
         this.#lastEventID = event.id;
-        this.#logger.info("[EVENT-LOOP] Event ID has changed, calling onNextEventScheduleAvailable");
+        if (!event.short.toLowerCase().includes("gdq")) {
+            this.#logger.info("[EVENT-LOOP] Event {short} is not a GDQ event, skipping", {short: event.short});
+            return;
+        }
+        this.#logger.info("[EVENT-LOOP] Event {short} is a GDQ event, calling onNextEventScheduleAvailable", {short: event.short});
         this.#onNextEventScheduleAvailable(event);
     }
 
