@@ -2,7 +2,7 @@ import express from 'express';
 
 export class MetricsProvider {
     #port = 9000;
-    constructor(config) {
+    constructor(logger, config) {
         this.cacheMisses = config.cacheMisses;
         this.cacheHits = config.cacheHits;
         this.startTime = Date.now();
@@ -24,7 +24,7 @@ export class MetricsProvider {
         });
 
         const server = this.app.listen(this.#port, () => {
-            console.log(`Metrics server running on http://localhost:${this.#port}/metrics`);
+            logger.info(`[METRICS] server running on http://localhost:${this.#port}/metrics`);
         });
     }
 }
