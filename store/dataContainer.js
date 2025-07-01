@@ -49,13 +49,15 @@ export class DataContainer
     const eventsInOrder = events.sort((a,b)=>new Date(a.startTime) - new Date(b.startTime));
     this.#data.eventOrder = eventsInOrder;
   }
+
+  #cacheTTL = 9 * 1000; // 9 seconds
   async getEvent(eventID)
   {
     const cacheKey = `runs_${eventID}`;
     const now = this.#timeProvider.getCurrent().getTime();
     const cached = this.#data._runsCache[cacheKey];
     let runs = null;
-    if (cached && (now - cached.timestamp < 9000)) {
+    if (cached && (now - cached.timestamp < this.#cacheTTL)) {
       runs = cached.data;
       this.#onCacheHit(`https://tracker.gamesdonequick.com/tracker/api/v2/events/${eventID}/runs/`);
     } else {
