@@ -22,7 +22,7 @@ describe("dataContainer", () => {
                 const timeProvider = new FakeTimeProvider(new Date(time));
                 const emissionMethod = jest.fn();
                 const httpClient = new FakeHTTPClient("during-pumpkin_jack")
-                const dataContainer = new DataContainer(stubLogger, httpClient, timeProvider, new Twitch(httpClient), emissionMethod);
+                const dataContainer = new DataContainer(stubLogger, httpClient, timeProvider, new Twitch(httpClient), emissionMethod, () => {});
     
                 await dataContainer.checkFor10MinuteWarning();
                 expect(emissionMethod.mock.calls.length).toBe(0);
@@ -104,7 +104,7 @@ describe("dataContainer", () => {
                     const timeProvider = new FakeTimeProvider(new Date());
                     const emissionMethod = jest.fn();
                     const fakeHTTPClient = new FakeHTTPClient("during-pumpkin_jack");
-                    const dataContainer = new DataContainer(stubLogger, fakeHTTPClient, timeProvider, new Twitch(fakeHTTPClient), emissionMethod);
+                    const dataContainer = new DataContainer(stubLogger, fakeHTTPClient, timeProvider, new Twitch(fakeHTTPClient), emissionMethod, () => {});
                     await dataContainer.getRunToMonitor();
 
                     await logic(dataContainer, timeProvider, fakeHTTPClient, emissionMethod);
@@ -119,7 +119,7 @@ describe("dataContainer", () => {
                         const timeProvider = new FakeTimeProvider(new Date());
                         const emissionMethod = jest.fn();
                         const fakeHTTPClient = new FakeHTTPClient("during-pumpkin_jack");
-                        const dataContainer = new DataContainer(stubLogger, fakeHTTPClient, timeProvider, new Twitch(fakeHTTPClient), emissionMethod);
+                        const dataContainer = new DataContainer(stubLogger, fakeHTTPClient, timeProvider, new Twitch(fakeHTTPClient), emissionMethod, () => {});
                         await dataContainer.getRunToMonitor();
     
                         await logic1(dataContainer, timeProvider, fakeHTTPClient, emissionMethod);
@@ -152,7 +152,7 @@ describe("dataContainer", () => {
                 const twentyMinutesBeforeAGDQ = new FakeTimeProvider(new Date(timeA));
                 const emissionMethod = jest.fn();
                 const fakeHTTPClient = new FakeHTTPClient(httpA);
-                const dataContainer = new DataContainer(stubLogger, fakeHTTPClient, twentyMinutesBeforeAGDQ, new Twitch(fakeHTTPClient), emissionMethod);
+                const dataContainer = new DataContainer(stubLogger, fakeHTTPClient, twentyMinutesBeforeAGDQ, new Twitch(fakeHTTPClient), emissionMethod, () => {});
                 await dataContainer.checkFor10MinuteWarning();
                 await dataContainer.checkTwitch();
     
