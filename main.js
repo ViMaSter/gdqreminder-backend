@@ -107,7 +107,7 @@ const startup = async (logger, config) => {
   });
   const eventTracker = new EventTracker(logger, instance, timeProvider, onNextEventScheduleReleased);
 
-  const metricsProvider = new MetricsProvider({cacheMisses, cacheHits});
+  const metricsProvider = new MetricsProvider(logger, {cacheMisses, cacheHits});
   
   await Promise.all([
     dataContainer.startLoop({...config,
