@@ -8,6 +8,7 @@ import got from 'got';
 import { Twitch } from './services/twitch.js'
 import winston from 'winston'
 import { SeqTransport } from '@datalust/winston-seq'
+import { MetricsProvider } from './metrics/metricsProvider.js';
 
 initializeApp();
 
@@ -82,20 +83,31 @@ const startup = async (logger, config) => {
     // firebase.sendStartMessageForNewSchedule(event);
   };
 
-  // log every request
+  const cacheHits = {};
+  const cacheMisses = {};
   const instance = got.extend({
     hooks: {
       afterResponse: [
         response => {
-          // console.debug(`[CACHE MIS] Using cache for ${response.url}`);
+          if (!cacheMisses[response.url]) {
+            cacheMisses[response.url] = 0;
+          }
+          cacheMisses[response.url]++;
           return response;
         }
       ]
     },
   });
   
-  const dataContainer = new DataContainer(logger, instance, timeProvider, new Twitch(instance, process.env.TWITCH_CLIENT_ID, logger), onNextRunStarted);
+  const dataContainer = new DataContainer(logger, instance, timeProvider, new Twitch(instance, process.env.TWITCH_CLIENT_ID, logger), onNextRunStarted, (url) => {
+    if (!cacheHits[url]) {
+      cacheHits[url] = 0;
+    }
+    cacheHits[url]++;
+  });
   const eventTracker = new EventTracker(logger, instance, timeProvider, onNextEventScheduleReleased);
+
+  const metricsProvider = new MetricsProvider({cacheMisses, cacheHits});
   
   await Promise.all([
     dataContainer.startLoop({...config,
@@ -103,7 +115,7 @@ const startup = async (logger, config) => {
       timeProvider.passTime(refreshIntervalInMS * speedup);
       logger.info(`[TIME] Passing ${((refreshIntervalInMS * speedup) / 1000)} seconds; now ${timeProvider.getCurrent().toISOString()}`);
     } : undefined}),
-    eventTracker.startLoop(config)
+    eventTracker.startLoop(config),
   ]);
 };
 
