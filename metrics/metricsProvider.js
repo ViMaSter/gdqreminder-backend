@@ -5,7 +5,8 @@ export class MetricsProvider {
     constructor(config) {
         this.cacheMisses = config.cacheMisses;
         this.cacheHits = config.cacheHits;
-        
+        this.startTime = Date.now();
+
         this.app = express();
 
         this.app.get('/metrics', (req, res) => {
@@ -16,6 +17,8 @@ export class MetricsProvider {
             for (const [url, count] of Object.entries(this.cacheHits)) {
                 response += `cache_hits{url="${url}"} ${count}\n`;
             }
+            const secondsRunning = Math.floor((Date.now() - this.startTime) / 1000);
+            response += `seconds_running ${secondsRunning}\n`;
             res.set('Content-Type', 'text/plain');
             res.send(response);
         });
