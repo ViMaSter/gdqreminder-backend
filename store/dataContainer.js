@@ -11,6 +11,7 @@ export class DataContainer
     "eventOrder": [],
     "events": {},
     "runsWithEventID": {},
+    "_runsCache": {}
   };
 
   #logger = null;
@@ -48,14 +49,29 @@ export class DataContainer
   }
   async getEvent(eventID)
   {
-    const runs = (await this.#httpClient.get(`https://tracker.gamesdonequick.com/tracker/api/v2/events/${eventID}/runs/`).json()).results;
+    const cacheKey = `runs_${eventID}`;
+    if (!this.#data._runsCache) this.#data._runsCache = {};
+    const now = this.#timeProvider.getCurrent().getTime();
+    const cached = this.#data._runsCache[cacheKey];
+    let runs = null;
+    if (cached && (now - cached.timestamp < 9000)) {
+      runs = cached.data;
+      // console.debug(`[CACHE HIT] Using cache for ${eventID}`);
+    } else {
+      runs = (await this.#httpClient.get(`https://tracker.gamesdonequick.com/tracker/api/v2/events/${eventID}/runs/`).json()).results;
+      this.#data._runsCache[cacheKey] = { data: structuredClone(runs), timestamp: now };
+    }
 
     const runsWithEventIDById = Object.fromEntries(runs.map(entry => {
-      entry.startTime = new Date(entry.starttime);
-      delete entry.starttime;
+      if (entry.starttime) {
+        entry.startTime = new Date(entry.starttime);
+        delete entry.starttime;
+      }
 
-      entry.endTime = new Date(entry.endtime);
-      delete entry.endtime;
+      if (entry.endtime) {
+        entry.endTime = new Date(entry.endtime);
+        delete entry.endtime;
+      }
 
       entry.eventID = eventID;
 

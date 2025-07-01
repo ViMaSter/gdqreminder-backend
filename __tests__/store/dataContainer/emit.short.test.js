@@ -81,10 +81,13 @@ describe("dataContainer", () => {
             "if the previous run has a changed end time": async (dataContainer, timeProvider, fakeHTTPClient, emissionMethod, skipValidation = false) => {
                 const previousCallCount = emissionMethod.mock.calls.length;
                 const pumpkinJackStart = moment("2022-01-11T04:28:00Z");
+
                 timeProvider.setTime(new Date(pumpkinJackStart.clone().subtract(15, "minutes").toISOString()).getTime());
-                
                 await dataContainer.checkFor10MinuteWarning();
+                
                 fakeHTTPClient.setPrefix("run-before-pumpkin_jack-ended-20-minutes-earlier");
+
+                timeProvider.setTime(new Date(pumpkinJackStart.clone().subtract(15, "minutes").add(10, "seconds").toISOString()).getTime());
                 await dataContainer.checkFor10MinuteWarning();
                 if (!skipValidation)
                 {
