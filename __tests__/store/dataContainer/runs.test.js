@@ -68,7 +68,7 @@ describe("dataContainer", () => {
         Object.entries(pointsInTimeAndExpectedResponse).forEach(([date, expectedResults]) => {
             describe("at "+date, () => {
                 const fakeHTTPClient = new FakeHTTPClient("during-preshow")
-                const dataContainer = new DataContainer(console, fakeHTTPClient, new FakeTimeProvider(new Date(date)), new Twitch(fakeHTTPClient), () => {});
+                const dataContainer = new DataContainer(console, fakeHTTPClient, new FakeTimeProvider(new Date(date)), new Twitch(fakeHTTPClient), () => {}, () => {});
 
                 Object.entries(expectedResults).forEach(([relativeTime, dataPair]) => {
                     // capitalize first letter of relativeTime
@@ -93,7 +93,7 @@ describe("dataContainer", () => {
 
         test("getting run to monitor without run coming up", async () => {
             const fakeHTTPClient = new FakeHTTPClient("during-preshow")
-            const dataContainer = new DataContainer(console, fakeHTTPClient, new FakeTimeProvider(new Date("2030-01-01")), new Twitch(fakeHTTPClient), () => {});
+            const dataContainer = new DataContainer(console, fakeHTTPClient, new FakeTimeProvider(new Date("2030-01-01")), new Twitch(fakeHTTPClient), () => {}, () => {});
             await dataContainer.getRunToMonitor();
             expect(await dataContainer.getRunToMonitor()).toBeNull();
         })
