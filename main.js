@@ -81,9 +81,21 @@ const startup = async (logger, config) => {
     logger.info("[EMISSION] event announced: " + event.id);
     // firebase.sendStartMessageForNewSchedule(event);
   };
+
+  // log every request
+  const instance = got.extend({
+    hooks: {
+      afterResponse: [
+        response => {
+          // console.debug(`[CACHE MIS] Using cache for ${response.url}`);
+          return response;
+        }
+      ]
+    },
+  });
   
-  const dataContainer = new DataContainer(logger, got, timeProvider, new Twitch(got, process.env.TWITCH_CLIENT_ID, logger), onNextRunStarted);
-  const eventTracker = new EventTracker(logger, got, timeProvider, onNextEventScheduleReleased);
+  const dataContainer = new DataContainer(logger, instance, timeProvider, new Twitch(instance, process.env.TWITCH_CLIENT_ID, logger), onNextRunStarted);
+  const eventTracker = new EventTracker(logger, instance, timeProvider, onNextEventScheduleReleased);
   
   await Promise.all([
     dataContainer.startLoop({...config,
