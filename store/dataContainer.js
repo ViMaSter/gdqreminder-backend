@@ -52,7 +52,6 @@ export class DataContainer
   async getEvent(eventID)
   {
     const cacheKey = `runs_${eventID}`;
-    if (!this.#data._runsCache) this.#data._runsCache = {};
     const now = this.#timeProvider.getCurrent().getTime();
     const cached = this.#data._runsCache[cacheKey];
     let runs = null;
