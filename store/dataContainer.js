@@ -17,9 +17,10 @@ export class DataContainer
   #httpClient = null;
   #timeProvider = null;
   #onNextRunStarted = null;
+  #onCacheHit = null;
   #twitch = null;
 
-  constructor(logger, httpClient, timeProvider, twitch, onNextRunStarted)
+  constructor(logger, httpClient, timeProvider, twitch, onNextRunStarted, onCacheHit)
   {
     if (logger)
     {
@@ -28,6 +29,7 @@ export class DataContainer
     this.#httpClient = httpClient;
     this.#timeProvider = timeProvider;
     this.#onNextRunStarted = onNextRunStarted;
+    this.#onCacheHit = onCacheHit.bind(this);
     this.#twitch = twitch;
   }
 
