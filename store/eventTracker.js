@@ -8,7 +8,6 @@ export class EventTracker {
     #onNextEventScheduleAvailable = null;
     #refreshIntervalInMS = 10000;
 
-    #loopRunning = false;
     constructor(logger, httpClient, timeProvider, onNextEventScheduleAvailable) {
         if (logger)
         {
@@ -19,30 +18,10 @@ export class EventTracker {
         this.#onNextEventScheduleAvailable = onNextEventScheduleAvailable;
     }
 
-    async startLoop(config) {
-        if (this.#loopRunning) {
-            throw new Error("Loop is already running");
-        }
-        this.#loopRunning = true;
-        const {beforeNextCheck, afterEachCheck, refreshIntervalInMS} = config;
-        while (this.#loopRunning) {
-            const startAt = moment(this.#timeProvider.getCurrent());
-            beforeNextCheck?.(startAt);
-
-            await this.#checkForNewEvents();
-            this.#logger.info("[EVENT-LOOP] duration: " + moment.utc(moment(this.#timeProvider.getCurrent()).diff(startAt)).format("HH:mm:ss.SSS"));
-
-            await new Promise(resolve => {
-                setTimeout(resolve, refreshIntervalInMS)
-                afterEachCheck?.(startAt);
-            });
-        }
-    }
-
     async #checkForNewEvents() {
         // fetch https://tracker.gamesdonequick.com/tracker/api/v2/events/; if 200, get .results, order descending by datetime, take [0], get {.id, .short}
         this.#logger.info("[EVENT-LOOP] Fetching events");
-        const eventRequest = await this.#httpClient.get("https://tracker.gamesdonequick.com/tracker/api/v2/events");
+        const eventRequest = await this.#httpClient.get("https://tracker.gamesdonequick.com/tracker/api/v2/events", {throwHttpErrors: false});
         if (eventRequest.statusCode !== 200) {
             this.#logger.error("[EVENT-LOOP] Failed to fetch events: " + eventRequest.statusCode + "\n" + eventRequest.body);
             return;
@@ -58,9 +37,9 @@ export class EventTracker {
         this.#logger.info("[EVENT-LOOP] Latest event: {short} ({id}) starting at {datetime}", event);
 
         // fetch https://tracker.gamesdonequick.com/tracker/api/v2/events/{id}/runs; if 200, get .results.length, call onNextEventScheduleAvailable with .short
-        const eventRunsRequest = await this.#httpClient.get(`https://tracker.gamesdonequick.com/tracker/api/v2/events/${event.id}/runs`);
+        const eventRunsRequest = await this.#httpClient.get(`https://tracker.gamesdonequick.com/tracker/api/v2/events/${event.id}/runs`, {throwHttpErrors: false});
         if (eventRunsRequest.statusCode !== 200) {
-            this.#logger.error("[EVENT-LOOP] Failed to fetch event runs: " + eventRunsRequest.statusCode + "\n" + eventRunsRequest.body);
+            this.#logger.info("[EVENT-LOOP] No event runs available yet: " + eventRunsRequest.statusCode + "\n" + eventRunsRequest.body);
             return;
         }
         const eventRuns = JSON.parse(eventRunsRequest.body);
@@ -87,7 +66,36 @@ export class EventTracker {
         this.#onNextEventScheduleAvailable(event);
     }
 
+    #continueLoop = false;
+    async startLoop(config) {
+        if (this.#continueLoop) {
+            throw new Error("Loop is already running");
+        }
+        this.#continueLoop = true;
+        const {beforeNextCheck, afterEachCheck, refreshIntervalInMS} = config;
+        while (this.#continueLoop) {
+            const startAt = moment(this.#timeProvider.getCurrent());
+            try {
+                beforeNextCheck?.(startAt);
+
+                await this.#checkForNewEvents();
+                this.#logger.info("[EVENT-LOOP] duration: " + moment.utc(moment(this.#timeProvider.getCurrent()).diff(startAt)).format("HH:mm:ss.SSS"));
+            } catch (error) {
+                this.#logger.error("[EVENT-LOOP] Error during loop: ", error);
+            } finally {
+                await new Promise((resolve) => {
+                    setTimeout(resolve, refreshIntervalInMS)
+                    afterEachCheck?.(startAt);
+                });
+            }
+        }
+        if (this.#continueLoop) {
+            this.#logger.error("[EVENT-LOOP] Exited loop without calling stopLoop");
+            process.exit(2); // force restart
+        }
+    }
+
     stopLoop() {
-        this.#loopRunning = false;
+        this.#continueLoop = false;
     }
 };
