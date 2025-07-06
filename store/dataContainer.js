@@ -371,15 +371,24 @@ export class DataContainer
     while (this.#continueLoop)
     {
         const startAt = moment(this.#timeProvider.getCurrent());
-        beforeNextCheck?.(startAt);
-        await this.checkFor10MinuteWarning();
-        await this.checkTwitch();
-        await this.getNextEvent(); // checks for runs in next event
-        this.#logger.info("[RUN-LOOP] duration: " + moment.utc(moment(this.#timeProvider.getCurrent()).diff(startAt)).format("HH:mm:ss.SSS"));
-        await new Promise((resolve) => {
-          setTimeout(resolve, refreshIntervalInMS)
-          afterEachCheck?.(startAt);
-        });
+        try {
+          beforeNextCheck?.(startAt);
+          await this.checkFor10MinuteWarning();
+          await this.checkTwitch();
+          await this.getNextEvent(); // checks for runs in next event
+          this.#logger.info("[RUN-LOOP] duration: " + moment.utc(moment(this.#timeProvider.getCurrent()).diff(startAt)).format("HH:mm:ss.SSS"));
+        } catch (error) {
+          this.#logger.error("[RUN-LOOP] Error during loop: ", error);
+        } finally {
+          await new Promise((resolve) => {
+            setTimeout(resolve, refreshIntervalInMS)
+            afterEachCheck?.(startAt);
+          });
+        }
+    }
+    if (this.#continueLoop) {
+      this.#logger.error("[RUN-LOOP] Exited loop without calling stopLoop");
+      process.exit(1); // force restart
     }
   }
 
