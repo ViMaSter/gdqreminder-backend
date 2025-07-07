@@ -99,7 +99,7 @@ const startup = async (logger, config) => {
     },
   });
   
-  const dataContainer = new DataContainer(logger, instance, timeProvider, new Twitch(instance, process.env.TWITCH_CLIENT_ID, logger), onNextRunStarted, (url) => {
+  const dataContainer = new DataContainer(logger, instance, timeProvider, new Twitch(instance, timeProvider, process.env.TWITCH_CLIENT_ID, logger, cacheHits), onNextRunStarted, (url) => {
     if (!cacheHits[url]) {
       cacheHits[url] = 0;
     }

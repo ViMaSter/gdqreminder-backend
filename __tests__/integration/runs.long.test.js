@@ -19,7 +19,7 @@ describe("integration", () => {
     const timeProvider = new FakeTimeProvider(new Date(fifteenMinutesBeforeAGDQ2022).getTime());
     const fakeHTTPClient = new FakeHTTPClient("integration/runs/0-before-preshow");
     
-    const systemUnderTest = new DataContainer(stubLogger, fakeHTTPClient, timeProvider, new Twitch(fakeHTTPClient, ""), emissionMethod, () => {});
+    const systemUnderTest = new DataContainer(stubLogger, fakeHTTPClient, timeProvider, new Twitch(fakeHTTPClient, timeProvider, ""), emissionMethod, () => {});
 
     it("emits for each different occasion", async () => {
         const loopWithEvents = new Promise(async (resolve, reject) => {

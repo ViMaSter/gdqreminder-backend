@@ -1,15 +1,33 @@
 export class Twitch {
     #httpClient = null;
+    #timeProvider = null;
     #clientID = "";
     #logger = null;
-    constructor(httpClient, clientID, logger) {
+    #cacheHits = null;
+    constructor(httpClient, timeProvider, clientID, logger, cacheHits) {
         this.#httpClient = httpClient;
+        this.#timeProvider = timeProvider;
         this.#clientID = clientID;
         this.#logger = logger;
+        this.#cacheHits = cacheHits;
     }
     // get current title or game name via gql api with got and TWITCH_CLIENT_ID env
-    async isSubstringOfGameNameOrStreamTitle(substring) {
-        const twitchTime = new Date().getTime();
+    #cache = {
+        data: null,
+        timestamp: 0
+    };
+
+    async fetchTitle() {
+        if (this.#cache.data && (this.#timeProvider.getCurrent().getTime() - this.#cache.timestamp) < 5000) {
+            if (this.#cacheHits) {
+                if (!this.#cacheHits["https://gql.twitch.tv/gql"]) {
+                    this.#cacheHits["https://gql.twitch.tv/gql"] = 0;
+                }
+                this.#cacheHits["https://gql.twitch.tv/gql"]++;
+            }
+            return this.#cache.data;
+        }
+        const twitchTime = this.#timeProvider.getCurrent().getTime();
         const response = await this.#httpClient.post("https://gql.twitch.tv/gql", {
             headers: {
                 "Client-ID": this.#clientID,
@@ -39,19 +57,26 @@ export class Twitch {
                 methods: ["POST"]
             }
         }).json();
-        this.#logger?.info("[TWITCH] requestTime: {time}", {time: ((new Date().getTime() - twitchTime) / 1000)});
+        this.#logger?.info("[TWITCH] requestTime: {time}", {time: ((this.#timeProvider.getCurrent().getTime() - twitchTime) / 1000)});
+        this.#cache = {
+            data: response,
+            timestamp: this.#timeProvider.getCurrent().getTime()
+        };
+        return this.#cache.data;
+    }
+
+    async isSubstringOfGameNameOrStreamTitle(substring) {
+        const response = await this.fetchTitle();
         const streamName = response[0].data.user.broadcastSettings.title.toLowerCase();
         if (streamName.includes(substring.toLowerCase())) {
             return true;
         }
-        if (response[0].data.user.stream?.game?.name)
-        {
+        if (response[0].data.user.stream?.game?.name) {
             const gameName = response[0].data.user.stream.game.name.toLowerCase();
             if (gameName.includes(substring.toLowerCase())) {
                 return true;
             }
         }
-
         return false;
     }
 }
