@@ -22,7 +22,7 @@ describe("dataContainer", () => {
                 const timeProvider = new FakeTimeProvider(new Date(time));
                 const emissionMethod = jest.fn();
                 const httpClient = new FakeHTTPClient("during-pumpkin_jack")
-                const dataContainer = new DataContainer(stubLogger, httpClient, timeProvider, new Twitch(httpClient), emissionMethod, () => {});
+                const dataContainer = new DataContainer(stubLogger, httpClient, timeProvider, new Twitch(httpClient, timeProvider), emissionMethod, () => {});
     
                 await dataContainer.checkFor10MinuteWarning();
                 expect(emissionMethod.mock.calls.length).toBe(0);
@@ -104,7 +104,7 @@ describe("dataContainer", () => {
                     const timeProvider = new FakeTimeProvider(new Date());
                     const emissionMethod = jest.fn();
                     const fakeHTTPClient = new FakeHTTPClient("during-pumpkin_jack");
-                    const dataContainer = new DataContainer(stubLogger, fakeHTTPClient, timeProvider, new Twitch(fakeHTTPClient), emissionMethod, () => {});
+                    const dataContainer = new DataContainer(stubLogger, fakeHTTPClient, timeProvider, new Twitch(fakeHTTPClient, timeProvider), emissionMethod, () => {});
                     await dataContainer.getRunToMonitor();
 
                     await logic(dataContainer, timeProvider, fakeHTTPClient, emissionMethod);
@@ -119,7 +119,7 @@ describe("dataContainer", () => {
                         const timeProvider = new FakeTimeProvider(new Date());
                         const emissionMethod = jest.fn();
                         const fakeHTTPClient = new FakeHTTPClient("during-pumpkin_jack");
-                        const dataContainer = new DataContainer(stubLogger, fakeHTTPClient, timeProvider, new Twitch(fakeHTTPClient), emissionMethod, () => {});
+                        const dataContainer = new DataContainer(stubLogger, fakeHTTPClient, timeProvider, new Twitch(fakeHTTPClient, timeProvider), emissionMethod, () => {});
                         await dataContainer.getRunToMonitor();
     
                         await logic1(dataContainer, timeProvider, fakeHTTPClient, emissionMethod);
@@ -138,21 +138,23 @@ describe("dataContainer", () => {
                     httpA: "skips-twitch-for-first-run/0-agdq2022-before-preshow",
                     timeB: "2022-01-09T16:45:00Z",
                     httpB: "skips-twitch-for-first-run/1-agdq2022-twitch-game-is-nioh2",
+                    timeC: "2022-01-09T16:50:00Z",
                 },
                 {
                     timeA: "2022-06-26T15:00:00Z",
                     httpA: "skips-twitch-for-first-run/2-sgdq2022-without-preshow",
                     timeB: "2022-06-26T17:15:00Z",
                     httpB: "skips-twitch-for-first-run/3-sgdq2022-twitch-game-is-sonic-generations",
+                    timeC: "2022-06-26T17:20:00Z",
                 },
             ];
             for (const index in events)
             {
-                const {timeA, httpA, timeB, httpB} = events[index];
+                const {timeA, httpA, timeB, httpB, timeC} = events[index];
                 const twentyMinutesBeforeAGDQ = new FakeTimeProvider(new Date(timeA));
                 const emissionMethod = jest.fn();
                 const fakeHTTPClient = new FakeHTTPClient(httpA);
-                const dataContainer = new DataContainer(stubLogger, fakeHTTPClient, twentyMinutesBeforeAGDQ, new Twitch(fakeHTTPClient), emissionMethod, () => {});
+                const dataContainer = new DataContainer(stubLogger, fakeHTTPClient, twentyMinutesBeforeAGDQ, new Twitch(fakeHTTPClient, twentyMinutesBeforeAGDQ), emissionMethod, () => {});
                 await dataContainer.checkFor10MinuteWarning();
                 await dataContainer.checkTwitch();
     
@@ -165,6 +167,7 @@ describe("dataContainer", () => {
                 expect(emissionMethod.mock.calls[0][1]).toBe(DataContainer.EmitReasons.StartInLessThanTenMinutes);
     
                 fakeHTTPClient.setPrefix(httpB);
+                twentyMinutesBeforeAGDQ.setTime(new Date(timeC))
                 await dataContainer.checkFor10MinuteWarning();
                 await dataContainer.checkTwitch();
     
