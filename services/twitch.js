@@ -1,3 +1,4 @@
+const CACHE_TTL_MS = 5000; // 5 seconds
 export class Twitch {
     #httpClient = null;
     #timeProvider = null;
@@ -18,7 +19,7 @@ export class Twitch {
     };
 
     async fetchTitle() {
-        if (this.#cache.data && (this.#timeProvider.getCurrent().getTime() - this.#cache.timestamp) < 5000) {
+        if (this.#cache.data && (this.#timeProvider.getCurrent().getTime() - this.#cache.timestamp) < CACHE_TTL_MS) {
             this.#cacheHits?.("https://gql.twitch.tv/gql");
             return this.#cache.data;
         }
