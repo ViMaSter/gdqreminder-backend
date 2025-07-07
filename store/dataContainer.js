@@ -21,7 +21,7 @@ export class DataContainer
   #onCacheHit = null;
   #twitch = null;
 
-  constructor(logger, httpClient, timeProvider, twitch, onNextRunStarted, onCacheHit)
+  constructor(logger, httpClient, timeProvider, twitch, onNextRunStarted, metricsProvider)
   {
     if (logger)
     {
@@ -30,7 +30,7 @@ export class DataContainer
     this.#httpClient = httpClient;
     this.#timeProvider = timeProvider;
     this.#onNextRunStarted = onNextRunStarted;
-    this.#onCacheHit = onCacheHit.bind(this);
+    this.#onCacheHit = metricsProvider?.addCacheHit?.bind(metricsProvider);
     this.#twitch = twitch;
   }
 
@@ -59,7 +59,7 @@ export class DataContainer
     let runs = null;
     if (cached && (now - cached.timestamp < this.#cacheTTL)) {
       runs = cached.data;
-      this.#onCacheHit(`https://tracker.gamesdonequick.com/tracker/api/v2/events/${eventID}/runs/`);
+      this.#onCacheHit?.(`https://tracker.gamesdonequick.com/tracker/api/v2/events/${eventID}/runs/`);
     } else {
       runs = (await this.#httpClient.get(`https://tracker.gamesdonequick.com/tracker/api/v2/events/${eventID}/runs/`).json()).results;
       this.#data._runsCache[cacheKey] = { data: structuredClone(runs), timestamp: now };
