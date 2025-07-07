@@ -40,7 +40,7 @@ export class MetricsProvider {
 
         if (port) {
             this.#server = this.app.listen(port, () => {
-                console.log(`Metrics server running on http://localhost:${port}/metrics`);
+                logger?.info(`Metrics server running on http://localhost:${port}/metrics`);
             });
         } else {
             logger?.warn("[METRICS] No port specified, metrics server will not start.");
