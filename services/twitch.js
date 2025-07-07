@@ -19,11 +19,11 @@ export class Twitch {
     };
 
     async fetchTitle() {
-        if (this.#cache.data && (this.#timeProvider.getCurrent().getTime() - this.#cache.timestamp) < CACHE_TTL_MS) {
+        const now = this.#timeProvider.getCurrent().getTime();
+        if (this.#cache.data && (now - this.#cache.timestamp) < CACHE_TTL_MS) {
             this.#cacheHits?.("https://gql.twitch.tv/gql");
             return this.#cache.data;
         }
-        const twitchTime = this.#timeProvider.getCurrent().getTime();
         const response = await this.#httpClient.post("https://gql.twitch.tv/gql", {
             headers: {
                 "Client-ID": this.#clientID,
@@ -53,10 +53,9 @@ export class Twitch {
                 methods: ["POST"]
             }
         }).json();
-        this.#logger?.info("[TWITCH] requestTime: {time}", {time: ((this.#timeProvider.getCurrent().getTime() - twitchTime) / 1000)});
         this.#cache = {
             data: response,
-            timestamp: this.#timeProvider.getCurrent().getTime()
+            timestamp: now
         };
         return this.#cache.data;
     }
