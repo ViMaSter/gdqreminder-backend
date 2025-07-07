@@ -83,31 +83,29 @@ const startup = async (logger, config) => {
     // firebase.sendStartMessageForNewSchedule(event);
   };
 
-  const cacheHits = {};
-  const cacheMisses = {};
+  const metricsProvider = new MetricsProvider(logger, 9000);
+
   const instance = got.extend({
     hooks: {
+      beforeRequest: [
+        options => {
+          options.context = options.context || {};
+          options.context.startTime = timeProvider.getCurrent().getTime();
+        }
+      ],
       afterResponse: [
         response => {
-          if (!cacheMisses[response.url]) {
-            cacheMisses[response.url] = 0;
-          }
-          cacheMisses[response.url]++;
+          const startTime = response.request.options.context?.startTime;
+          metricsProvider.addRequestTime(response.url, timeProvider.getCurrent().getTime() - startTime);
+          metricsProvider.addCacheMiss(response.url);
           return response;
         }
       ]
     },
   });
   
-  const dataContainer = new DataContainer(logger, instance, timeProvider, new Twitch(instance, timeProvider, process.env.TWITCH_CLIENT_ID, logger, cacheHits), onNextRunStarted, (url) => {
-    if (!cacheHits[url]) {
-      cacheHits[url] = 0;
-    }
-    cacheHits[url]++;
-  });
+  const dataContainer = new DataContainer(logger, instance, timeProvider, new Twitch(instance, timeProvider, process.env.TWITCH_CLIENT_ID, logger, metricsProvider), onNextRunStarted, metricsProvider);
   const eventTracker = new EventTracker(logger, instance, timeProvider, onNextEventScheduleReleased);
-
-  const metricsProvider = new MetricsProvider(logger, {cacheMisses, cacheHits});
   
   await Promise.all([
     dataContainer.startLoop({...config,

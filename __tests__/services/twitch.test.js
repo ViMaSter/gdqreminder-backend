@@ -2,9 +2,10 @@ import { Twitch } from '../../services/twitch.js';
 import { FakeHTTPClient } from "../stubs/fakeHTTPClient";
 import { RealTimeProvider } from '../../services/timeProvider/realTimeProvider.js';
 import { expect } from '@jest/globals';
+import { MetricsProvider } from '../../metrics/metricsProvider.js';
 
-let cacheHits = {};
-const twitch = new Twitch(new FakeHTTPClient("during-pumpkin_jack"), new RealTimeProvider(), "", null, cacheHits);
+const metricsProvider = new MetricsProvider();
+const twitch = new Twitch(new FakeHTTPClient("during-pumpkin_jack"), new RealTimeProvider(), "", null, metricsProvider);
 await twitch.isSubstringOfGameNameOrStreamTitle("Pumpkin Jack"); // warm up cache
 
 describe("twitch", () => {
@@ -31,9 +32,9 @@ describe("twitch", () => {
         }
     ].forEach(({ testName, searchFor, expectToFind }) => {
         it(testName, async () => {
-            const previousCacheHits = cacheHits["https://gql.twitch.tv/gql"] || 0;
+            const previousCacheHits = metricsProvider.cacheHits["https://gql.twitch.tv/gql"] || 0;
             expect(await twitch.isSubstringOfGameNameOrStreamTitle(searchFor)).toBe(expectToFind);
-            expect(cacheHits["https://gql.twitch.tv/gql"]).toBe(previousCacheHits + 1);
+            expect(metricsProvider.cacheHits["https://gql.twitch.tv/gql"]).toBe(previousCacheHits + 1);
         });
     });
 
@@ -56,13 +57,13 @@ describe("twitch", () => {
         }
     ].forEach(({ testName, mockData }) => {
         it(testName, async () => {
-            let localCacheHits = {};
-            const offline = new Twitch(new FakeHTTPClient(mockData), new RealTimeProvider(), "", null, localCacheHits);
+            const metricsProvider = new MetricsProvider();
+            const offline = new Twitch(new FakeHTTPClient(mockData), new RealTimeProvider(), "", null, metricsProvider);
             await offline.fetchTitle(); // warm up cache
 
-            const previousCacheHits = localCacheHits["https://gql.twitch.tv/gql"] || 0;
+            const previousCacheHits = metricsProvider.cacheHits["https://gql.twitch.tv/gql"] || 0;
             expect(await offline.isSubstringOfGameNameOrStreamTitle("Pumpkin Jack")).toBeFalsy();
-            expect(localCacheHits["https://gql.twitch.tv/gql"]).toBe(previousCacheHits + 1);
+            expect(metricsProvider.cacheHits["https://gql.twitch.tv/gql"]).toBe(previousCacheHits + 1);
         });
     });
 })
