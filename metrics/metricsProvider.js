@@ -49,9 +49,6 @@ export class MetricsProvider {
 
     #bucketsInMS = [100, 200, 300, 400, 500, 800, 1000, 2000, 3000, 4000, 5000, 8000, Infinity];
     addRequestTime(url, requestTime) {
-        if(!this.twitchRequestDurationBuckets) {
-            this.twitchRequestTime = {};
-        }
         if (!this.twitchRequestDurationBuckets[url]) {
             this.twitchRequestDurationBuckets[url] = {};
             for (const bucket of this.#bucketsInMS) {
