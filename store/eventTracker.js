@@ -35,6 +35,10 @@ export class EventTracker {
             return;
         }
         this.#logger.info("[EVENT-LOOP] Latest event: {short} ({id}) starting at {datetime}", event);
+        if (this.#lastEventID === event.id) {
+            this.#logger.info("[EVENT-LOOP] Event ID has not changed, skipping");
+            return;
+        }
 
         // fetch https://tracker.gamesdonequick.com/tracker/api/v2/events/{id}/runs; if 200, get .results.length, call onNextEventScheduleAvailable with .short
         const eventRunsRequest = await this.#httpClient.get(`https://tracker.gamesdonequick.com/tracker/api/v2/events/${event.id}/runs`, {throwHttpErrors: false});
@@ -48,10 +52,6 @@ export class EventTracker {
             return;
         }
         this.#logger.info("[EVENT-LOOP] Event {short} has {length} runs", {short: event.short, length: eventRuns.results.length});
-        if (this.#lastEventID === event.id) {
-            this.#logger.info("[EVENT-LOOP] Event ID has not changed, skipping");
-            return;
-        }
         if (this.#lastEventID === null) {
             this.#logger.info("[EVENT-LOOP] Initial check, skipping");
             this.#lastEventID = event.id;
