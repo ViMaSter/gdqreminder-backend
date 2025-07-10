@@ -18,10 +18,11 @@ export class DataContainer
   #httpClient = null;
   #timeProvider = null;
   #onNextRunStarted = null;
+  #onNewRunAdded = null;
   #onCacheHit = null;
   #twitch = null;
 
-  constructor(logger, httpClient, timeProvider, twitch, onNextRunStarted, metricsProvider)
+  constructor(logger, httpClient, timeProvider, twitch, onNextRunStarted, metricsProvider, onNewRunAdded)
   {
     if (logger)
     {
@@ -32,6 +33,7 @@ export class DataContainer
     this.#onNextRunStarted = onNextRunStarted;
     this.#onCacheHit = metricsProvider?.addCacheHit?.bind(metricsProvider);
     this.#twitch = twitch;
+    this.#onNewRunAdded = onNewRunAdded;
   }
 
   async getAllEvents() 
@@ -80,7 +82,17 @@ export class DataContainer
 
       return [entry.id, entry];
     }));
-    this.#data.runsWithEventID = {...this.#data.runsWithEventID, ...runsWithEventIDById};
+
+    const existingRunIDs = new Set(Object.keys(this.#data.runsWithEventID));
+    const newRunIDs = Object.keys(runsWithEventIDById).filter(id => !existingRunIDs.has(id));
+
+    if (this.#onNewRunAdded && newRunIDs.length > 0 && existingRunIDs.size > 0) {
+      newRunIDs.forEach(id => {
+        this.#onNewRunAdded(runsWithEventIDById[id]);
+      });
+    }
+
+    this.#data.runsWithEventID = { ...this.#data.runsWithEventID, ...runsWithEventIDById };
 
     const runsInOrder = Object.values(runsWithEventIDById).sort((a,b)=>new Date(a.startTime) - new Date(b.startTime));
     if (this.#data.eventOrder.length <= 0)

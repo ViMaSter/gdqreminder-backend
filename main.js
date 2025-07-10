@@ -82,6 +82,10 @@ const startup = async (logger, config) => {
     logger.info("[EMISSION] event announced: " + event.id);
     // firebase.sendStartMessageForNewSchedule(event);
   };
+  const onNewRunAdded = (run) => {
+    logger.info("[EMISSION] new run added: {display_name} ({id}) from {startTime} to {endTime}", run);
+    // firebase.sendNewRunAddedMessage(run);
+  };
 
   const metricsProvider = new MetricsProvider(logger, 9000);
 
@@ -104,7 +108,7 @@ const startup = async (logger, config) => {
     },
   });
   
-  const dataContainer = new DataContainer(logger, instance, timeProvider, new Twitch(instance, timeProvider, process.env.TWITCH_CLIENT_ID, logger, metricsProvider), onNextRunStarted, metricsProvider);
+  const dataContainer = new DataContainer(logger, instance, timeProvider, new Twitch(instance, timeProvider, process.env.TWITCH_CLIENT_ID, logger, metricsProvider), onNextRunStarted, metricsProvider, onNewRunAdded);
   const eventTracker = new EventTracker(logger, instance, timeProvider, onNextEventScheduleReleased);
   
   await Promise.all([
