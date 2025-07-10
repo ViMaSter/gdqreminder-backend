@@ -4,13 +4,13 @@ export class Twitch {
     #timeProvider = null;
     #clientID = "";
     #logger = null;
-    #cacheHits = null;
+    #reportCacheHit = null;
     constructor(httpClient, timeProvider, clientID, logger, metricsProvider) {
         this.#httpClient = httpClient;
         this.#timeProvider = timeProvider;
         this.#clientID = clientID;
         this.#logger = logger;
-        this.#cacheHits = metricsProvider?.addCacheHit?.bind(metricsProvider);
+        this.#reportCacheHit = metricsProvider?.addCacheHit?.bind(metricsProvider);
     }
     // get current title or game name via gql api with got and TWITCH_CLIENT_ID env
     #cache = {
@@ -21,7 +21,7 @@ export class Twitch {
     async fetchTitle() {
         const now = this.#timeProvider.getCurrent().getTime();
         if (this.#cache.data && (now - this.#cache.timestamp) < CACHE_TTL_MS) {
-            this.#cacheHits?.("https://gql.twitch.tv/gql");
+            this.#reportCacheHit?.("https://gql.twitch.tv/gql");
             return this.#cache.data;
         }
         const response = await this.#httpClient.post("https://gql.twitch.tv/gql", {
