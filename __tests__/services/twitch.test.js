@@ -5,8 +5,12 @@ import { expect } from '@jest/globals';
 import { MetricsProvider } from '../../metrics/metricsProvider.js';
 
 const metricsProvider = new MetricsProvider();
-const twitch = new Twitch(new FakeHTTPClient("during-pumpkin_jack"), new RealTimeProvider(), "", null, metricsProvider);
-await twitch.isSubstringOfGameNameOrStreamTitle("Pumpkin Jack"); // warm up cache
+let twitch;
+
+beforeAll(async () => {
+    twitch = new Twitch(new FakeHTTPClient("during-pumpkin_jack"), new RealTimeProvider(), "", null, metricsProvider);
+    await twitch.isSubstringOfGameNameOrStreamTitle("Pumpkin Jack"); // warm up cache
+});
 
 describe("twitch", () => {
     [
