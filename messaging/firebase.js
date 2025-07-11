@@ -6,12 +6,6 @@ export default class Firebase {
     {
         this.#logger = logger;
     }
-    sentTestMessage() {
-        const vincent = '3961'; // agdq2020 -> A Hat In Time
-        const topic = vincent;
-
-        sendStartMessageForRun(topic);
-    }
     sendStartMessageForRun(run, reason) {
         const topic = `run.start.${run.id}`;
 
