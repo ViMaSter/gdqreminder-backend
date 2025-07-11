@@ -17,7 +17,7 @@ export default class Firebase {
 
         const firebaseMessage = {
             notification: {
-                title: `GDQ Reminder: ${run.display_name}`,
+                title: `GDQ Reminder: ${run.name}`,
                 body: "Live now! Tap and head to Twitch!"
             },
             android: {
@@ -32,15 +32,15 @@ export default class Firebase {
             topic: topic
         };
 
-        let logData = {firebaseMessage, id: run.id, display_name: run.display_name, reason};
+        let logData = {firebaseMessage, id: run.id, name: run.name, reason};
 
-        this.#logger.info("[FIREBASE] Sending message for run {id} ({display_name})... (Reason: {reason})", logData);
+        this.#logger.info("[FIREBASE] Sending message for run {id} ({name})... (Reason: {reason})", logData);
         getMessaging().send(firebaseMessage)
             .then((response) => {
-                this.#logger.info("[FIREBASE] Successfully sent message for run {id} ({display_name}): {response} (Reason: {reason})", {...logData, response});
+                this.#logger.info("[FIREBASE] Successfully sent message for run {id} ({name}): {response} (Reason: {reason})", {...logData, response});
             })
             .catch((error) => {
-                this.#logger.info("[FIREBASE] Error sending message for run {id} ({display_name}): {error} (Error: {error})", {...logData, error});
+                this.#logger.info("[FIREBASE] Error sending message for run {id} ({name}): {error} (Error: {error})", {...logData, error});
             });
     }
     sendStartMessageForNewSchedule(event) {
