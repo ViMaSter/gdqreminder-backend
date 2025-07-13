@@ -84,7 +84,7 @@ const startup = async (logger, config) => {
   };
   const onNewRunAdded = (run) => {
     logger.info("[EMISSION] new run added: {display_name} ({id}) from {startTime} to {endTime}", run);
-    // firebase.sendNewRunAddedMessage(run);
+    firebase.sendNewlyAddedForRun(run);
   };
 
   const metricsProvider = new MetricsProvider(logger, 9000);
