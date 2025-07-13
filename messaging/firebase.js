@@ -37,7 +37,7 @@ export default class Firebase {
                 this.#logger.info("[FIREBASE] Error sending message for run {id} ({name}): {error} (Error: {error})", {...logData, error});
             });
     }
-    sendNewlyAddedForRun(run, reason) {
+    sendNewlyAddedForRun(run) {
         const topic = `run.added`;
 
         const firebaseMessage = {
