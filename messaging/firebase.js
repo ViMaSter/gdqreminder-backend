@@ -34,7 +34,7 @@ export default class Firebase {
                 this.#logger.info("[FIREBASE] Successfully sent message for run {id} ({name}): {response} (Reason: {reason})", {...logData, response});
             })
             .catch((error) => {
-                this.#logger.info("[FIREBASE] Error sending message for run {id} ({name}): {error}", {...logData, error});
+                this.#logger.error("[FIREBASE] Error sending message for run {id} ({name}): {error}", {...logData, error});
             });
     }
     sendNewlyAddedForRun(run) {
@@ -65,7 +65,7 @@ export default class Firebase {
                 this.#logger.info("[FIREBASE] Successfully sent message for run {id} ({display_name})", {...logData, response});
             })
             .catch((error) => {
-                this.#logger.info("[FIREBASE] Error sending message for run {id} ({display_name}): {error}", {...logData, error});
+                this.#logger.error("[FIREBASE] Error sending message for run {id} ({display_name}): {error}", {...logData, error});
             });
     }
     sendStartMessageForNewSchedule(event) {
@@ -97,7 +97,7 @@ export default class Firebase {
                 this.#logger.info("[FIREBASE] Successfully sent message for event {event.short} (Response: {response})", {...logData, response});
             })
             .catch((error) => {
-                this.#logger.info("[FIREBASE] Error sending message for event {event.short} (Error: {error})", {...logData, error});
+                this.#logger.error("[FIREBASE] Error sending message for event {event.short} (Error: {error})", {...logData, error});
             });
     }
 }
