@@ -40,10 +40,15 @@ export default class Firebase {
     sendNewlyAddedForRun(run) {
         const topic = `run.added`;
 
+        const now = new Date();
+        const startTime = new Date(run.start);
+        const diffMs = startTime - now;
+        const diffHours = Math.max(0, Math.round(diffMs / (1000 * 60 * 60)));
+
         const firebaseMessage = {
             notification: {
-                title: `GDQ Reminder: ${run.display_name}`,
-                body: "Just announced! Check the schedule!"
+                title: `New GDQ run added: ${run.display_name}!`,
+                body: `Starting in ${diffHours} hour${diffHours !== 1 ? 's' : ''} - set a reminder now!`
             },
             android: {
                 notification: {
@@ -52,7 +57,8 @@ export default class Firebase {
                 }
             },
             data: {
-                event: topic
+                event: topic,
+                pk: run.id,
             },
             topic: topic
         };
@@ -69,11 +75,11 @@ export default class Firebase {
             });
     }
     sendStartMessageForNewSchedule(event) {
-        const topic = `event.schedule`;
+        const topic = `event.announcement`;
 
         const firebaseMessage = {
             notification: {
-                title: `GDQ Reminder: ${event.short} announced!`,
+                title: `New GDQ event announced: ${event.short}!`,
                 body: "Tap to set your reminders!"
             },
             android: {
