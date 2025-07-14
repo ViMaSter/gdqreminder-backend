@@ -80,7 +80,7 @@ const startup = async (logger, config) => {
   };
   const onNextEventScheduleReleased = (event) => {
     logger.info("[EMISSION] event announced: " + event.id);
-    // firebase.sendStartMessageForNewSchedule(event);
+    firebase.sendStartMessageForNewSchedule(event);
   };
   const onNewRunAdded = (run) => {
     logger.info("[EMISSION] new run added: {display_name} ({id}) from {startTime} to {endTime}", run);
