@@ -76,15 +76,15 @@ const startup = async (logger, config) => {
 
   const onNextRunStarted = (run, reason) => {
     logger.info("[EMISSION] run start: " + run.id);
-    firebase.sendStartMessageForRun(run, reason);
+    firebase.sendRunStartNotification(run, reason);
   };
   const onNextEventScheduleReleased = (event) => {
     logger.info("[EMISSION] event announced: " + event.id);
-    firebase.sendStartMessageForNewSchedule(event);
+    firebase.sendEventAnnouncementNotification(event);
   };
   const onNewRunAdded = (run) => {
     logger.info("[EMISSION] new run added: {display_name} ({id}) from {startTime} to {endTime}", run);
-    firebase.sendNewlyAddedForRun(run);
+    firebase.sendRunAddedNotification(run);
   };
 
   const metricsProvider = new MetricsProvider(logger, 9000);

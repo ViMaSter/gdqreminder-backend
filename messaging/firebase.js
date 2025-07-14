@@ -6,7 +6,7 @@ export default class Firebase {
     {
         this.#logger = logger;
     }
-    sendStartMessageForRun(run, reason) {
+    sendRunStartNotification(run, reason) {
         const topic = `run.start.${run.id}`;
 
         const firebaseMessage = {
@@ -37,7 +37,7 @@ export default class Firebase {
                 this.#logger.error("[FIREBASE] Error sending message for run {id} ({name}): {error}", {...logData, error});
             });
     }
-    sendNewlyAddedForRun(run) {
+    sendRunAddedNotification(run) {
         const topic = `run.added`;
 
         const now = new Date();
@@ -63,7 +63,7 @@ export default class Firebase {
             topic: topic
         };
 
-        let logData = {firebaseMessage, id: run.id, display_name: run.display_name, reason};
+        let logData = {firebaseMessage, id: run.id, display_name: run.display_name};
 
         this.#logger.info("[FIREBASE] Sending run announcement for run {id} ({display_name})...", logData);
         getMessaging().send(firebaseMessage)
@@ -74,7 +74,7 @@ export default class Firebase {
                 this.#logger.error("[FIREBASE] Error sending message for run {id} ({display_name}): {error}", {...logData, error});
             });
     }
-    sendStartMessageForNewSchedule(event) {
+    sendEventAnnouncementNotification(event) {
         const topic = `event.announcement`;
 
         const firebaseMessage = {
