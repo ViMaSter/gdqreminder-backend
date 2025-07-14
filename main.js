@@ -75,7 +75,7 @@ const startup = async (logger, config) => {
   const firebase = new Firebase(logger);
 
   const onNextRunStarted = (run, reason) => {
-    logger.info("[EMISSION] run start: " + run.id);
+    logger.info("[EMISSION] run start: {id}", run);
     firebase.sendRunStartNotification(run, reason);
   };
   const onNextEventScheduleReleased = (event) => {
