@@ -58,7 +58,7 @@ export default class Firebase {
             },
             data: {
                 event: topic,
-                pk: run.id,
+                pk: run.id.toString(),
             },
             topic: topic
         };
