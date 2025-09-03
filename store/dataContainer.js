@@ -86,9 +86,11 @@ export class DataContainer
     const existingRunIDs = new Set(Object.keys(this.#data.runsWithEventID));
     const newRunIDs = Object.keys(runsWithEventIDById).filter(id => !existingRunIDs.has(id));
 
-    if (this.#onNewRunAdded && newRunIDs.length > 0 && existingRunIDs.size > 0) {
+    if (this.#onNewRunAdded && newRunIDs.length > 0 && this.#data.events[eventID]?.runsInOrder?.length > 0) {
       newRunIDs.forEach(id => {
+      if (!this.#data.events[eventID].runsInOrder.some(run => run.id === id)) {
         this.#onNewRunAdded(runsWithEventIDById[id]);
+      }
       });
     }
 
