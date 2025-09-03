@@ -6,7 +6,7 @@ export class EventTracker {
     #httpClient = null;
     #timeProvider = null;
     #onNextEventScheduleAvailable = null;
-    #refreshIntervalInMS = 10000;
+    #initialLoop = true;
 
     constructor(logger, httpClient, timeProvider, onNextEventScheduleAvailable) {
         if (logger)
@@ -16,10 +16,13 @@ export class EventTracker {
         this.#httpClient = httpClient;
         this.#timeProvider = timeProvider;
         this.#onNextEventScheduleAvailable = onNextEventScheduleAvailable;
+        this.#initialLoop = true;
     }
 
     async #checkForNewEvents() {
-        // fetch https://tracker.gamesdonequick.com/tracker/api/v2/events/; if 200, get .results, order descending by datetime, take [0], get {.id, .short}
+        const initialLoop = this.#initialLoop;
+        this.#initialLoop = false;
+
         this.#logger.info("[EVENT-LOOP] Fetching events");
         const eventRequest = await this.#httpClient.get("https://tracker.gamesdonequick.com/tracker/api/v2/events", {throwHttpErrors: false});
         if (eventRequest.statusCode !== 200) {
@@ -52,12 +55,11 @@ export class EventTracker {
             return;
         }
         this.#logger.info("[EVENT-LOOP] Event {short} has {length} runs", {short: event.short, length: eventRuns.results.length});
-        if (this.#lastEventID === null) {
+        this.#lastEventID = event.id;
+        if (initialLoop) {
             this.#logger.info("[EVENT-LOOP] Initial check, skipping");
-            this.#lastEventID = event.id;
             return;
         }
-        this.#lastEventID = event.id;
         if (!event.short.toLowerCase().includes("gdq")) {
             this.#logger.info("[EVENT-LOOP] Event {short} is not a GDQ event, skipping", {short: event.short});
             return;
