@@ -24,7 +24,7 @@
   "homepage": "https://github.com/ViMaSter/gdqreminder-backend#readme",
   "dependencies": {
     "@datalust/winston-seq": "^3.0.1",
-    "express": "^5.1.0",
+    "express": "^5.2.0",
     "firebase-admin": "^13.6.0",
     "got": "^14.6.5",
     "jest": "^30.2.0",
