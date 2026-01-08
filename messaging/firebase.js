@@ -38,7 +38,7 @@ export default class Firebase {
             });
     }
     sendRunAddedNotification(run) {
-        const topic = `run.added`;
+        const topic = `event.announcement`;
 
         const now = new Date();
         const startTime = new Date(run.start);
