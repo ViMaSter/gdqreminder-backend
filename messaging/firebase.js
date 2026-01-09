@@ -75,7 +75,7 @@ export default class Firebase {
             });
     }
     sendEventAnnouncementNotification(event) {
-        const topic = `event.announcement`;
+        const topic = `event.update`;
 
         const firebaseMessage = {
             notification: {
