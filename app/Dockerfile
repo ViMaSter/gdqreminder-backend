@@ -1,11 +1,11 @@
 FROM node:26-alpine AS test
 WORKDIR /app
-COPY ./app /app
+COPY . /app
 RUN npm ci && npm test
 
 FROM node:26-alpine
 WORKDIR /app
-COPY ./app /app
+COPY . /app
 RUN apk add --no-cache curl \
     && npm ci --omit=dev
 COPY entrypoint.sh /entrypoint.sh
